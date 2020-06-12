@@ -1,0 +1,52 @@
+{
+  "name": "menashmq",
+  "version": "0.0.4",
+  "description": "Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScript",
+  "keywords": [
+    "rabbitmq",
+    "rabbit",
+    "mq",
+    "amqplib",
+    "amqp",
+    "typescript",
+    "reconnect",
+    "rpc",
+    "menash"
+  ],
+  "author": "Alexander Gurevich",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "scripts": {
+    "start": "node --async-stack-traces ./dist/index.js",
+    "dev": "npm run build && npm start",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "test": "mocha -r ts-node/register src/**/*.spec.ts",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.5",
+    "@types/amqplib": "^0.5.13",
+    "p-retry": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.11.1",
+    "@types/p-retry": "^3.0.1",
+    "@types/yargs": "^15.0.5",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^7.1.2",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.8.3",
+    "yargs": "^15.3.1"
+  }
+}

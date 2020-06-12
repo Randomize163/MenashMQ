@@ -1,0 +1,10 @@
+version: "2.1"
+
+services:
+  rabbit:
+    labels:
+      NAME: "rabbitmq"
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
