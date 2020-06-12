@@ -10,32 +10,32 @@ Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScri
 ## Initialize once - use everywhere:
 **index.js**
 
-    const { menash } = require('menashmq');
-    
+	const { menash } = require('menashmq');
+		
     await menash.connect('amqp://localhost');
-    await menash.declareQueue('my-queue', { durable:  true });
+    await menash.declareQueue('my-queue', { durable: true });
     
 **manager.js**
 
 	const { menash } = require('menashmq');
 	
-	await  menash.send('my-queue', "I'm using MenashMQ");
+	await menash.send('my-queue', "I'm using MenashMQ");
 
 ## Declare your topology easily in one place:
 
-    const { menash } = require('menashmq');
-    
+	const { menash } = require('menashmq');
+	
 	await menash.declareTopology({
 		exchanges: [
-			{ name: 'first-exchange', type: 'fanout', options: { durable:  false } },
+			{ name: 'first-exchange', type: 'fanout', options: { durable: false } },
 			{ name: 'second-exchange', type: 'direct' },
 			{ name: 'third-exchange', type: 'topic' },
 		],
 		queues: [
-			{ name:  'queue1', options: { durable:  false } },
-			{ name:  'queue2' },
-			{ name:  'queue3' },
-			{ name:  'queue4' },
+			{ name: 'queue1', options: { durable: false } },
+			{ name: 'queue2' },
+			{ name: 'queue3' },
+			{ name: 'queue4' },
 		],
 		bindings: [
 			{ source: 'first-exchange', destination: 'queue1' },
@@ -44,30 +44,30 @@ Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScri
 			{ source: 'third-exchange', destination: 'queue4', pattern: "monkey.#" },
 		]
 	});
-  
+
 ## TypeScript support
 
 MenashMQ is written in Typescript and supports it perfectly!
 
 **index.ts**
 
-    import menash from 'menashmq';
-    
+	import menash from 'menashmq';
+
 	await menash.connect('amqp://localhost');
 	await menash.declateQueue('menash-queue');
 	
 **produce.ts**
 
-    import menash from 'menashmq';
-    
-    await menash.send('menash-queue', { name: 'menash', type: 'monkey' });
-    
+	import menash from 'menashmq';
+
+	await menash.send('menash-queue', { name: 'menash', type: 'monkey' });
+
 **consume.ts**
 
-    import menash, { ConsumerMessage } from 'menashmq';
-    
-    await menash.queues['menash-queue'].activateConsumer((msg: ConsumerMessage) => {
-		const  animal = msg.getContent() as  IAnimal;
+	import menash, { ConsumerMessage } from 'menashmq';
+
+	await menash.queues['menash-queue'].activateConsumer((msg: ConsumerMessage) => {
+		const animal = msg.getContent() as IAnimal;
 		console.log('Name:', animal.name);
 		console.log('Type:', animal.type);
 
