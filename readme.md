@@ -3,7 +3,7 @@
 
 Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScript
 
-![MenashMQ Logo](https://gitlab.com/Rand0m1ze/menashmq/-/raw/master/other/menashmq-logo.png "MenashMQ logo")
+![MenashMQ Logo](https://raw.githubusercontent.com/Randomize163/MenashMQ/master/other/menashmq-logo.png "MenashMQ logo")
 
 # Examples
 
