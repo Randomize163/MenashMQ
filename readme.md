@@ -54,7 +54,7 @@ MenashMQ is written in Typescript and supports it perfectly!
 	import menash from 'menashmq';
 
 	await menash.connect('amqp://localhost');
-	await menash.declateQueue('menash-queue');
+	await menash.declareQueue('menash-queue');
 	
 **produce.ts**
 
