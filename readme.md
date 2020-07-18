@@ -84,12 +84,8 @@ MenashMQ is written in Typescript and supports it perfectly!
 	}, { noAck: false });
 
 ## Upcoming features:
+- add support for JSON RPC over RabbitMQ
 
-- delayed nack() for class ConsumerMessage msg.nack(ms = 0)
-
-- automatic dead letter retry configuration
-
-- support RPC with message.reply()
 
 # API
 
