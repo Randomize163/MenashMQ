@@ -24,6 +24,11 @@ Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScri
 ## Declare your topology easily in one place:
 
 	const { menash } = require('menashmq');
+
+	// Simple consume function
+	const consume = (msg) => {
+		console.log(msg.getContent());
+	};
 	
 	await menash.declareTopology({
 		exchanges: [
@@ -42,6 +47,10 @@ Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScri
 			{ source: 'second-exchange', destination: 'queue2' },
 			{ source: 'third-exchange', destination: 'queue3', pattern: "*.menash" },
 			{ source: 'third-exchange', destination: 'queue4', pattern: "monkey.#" },
+		],
+		consumers: [
+			{ queueName: 'queue1', onMessage: consume }, 
+			{ queueName: 'queue2', onMessage: consume, options: { noAck: true } }, 
 		]
 	});
 
@@ -76,13 +85,9 @@ MenashMQ is written in Typescript and supports it perfectly!
 
 ## Upcoming features:
 
-- add consumers as part of declareTopology()
-
 - delayed nack() for class ConsumerMessage msg.nack(ms = 0)
 
 - automatic dead letter retry configuration
-
-- consume(queueName, func, parameters) and stopConsume(queueName)
 
 - support RPC with message.reply()
 

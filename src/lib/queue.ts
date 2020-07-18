@@ -3,7 +3,7 @@ import client, { Channel, Message, Connection, amqp, assert, ConsumerMessage, Ex
 export class Queue extends Channel {
     consumerOptions?: amqp.Options.Consume;
     consumerTag: string | null = null;
-    consumerOnMessage: (message: ConsumerMessage) => any;
+    consumerOnMessage: ConsumeFunction;
 
     queueAsserted = false;
 
@@ -102,7 +102,7 @@ export class Queue extends Channel {
         });
     }
 
-    async activateConsumer(onMessage: (message: ConsumerMessage) => any, options?: amqp.Options.Consume) {
+    async activateConsumer(onMessage: ConsumeFunction, options?: amqp.Options.Consume) {
         await client.waitForInitialize();
 
         if (!this.isInitialized()) {
@@ -116,7 +116,7 @@ export class Queue extends Channel {
         await this.activateConsumerHelper(onMessage, options);
     }
 
-    private async activateConsumerHelper(onMessage: (message: ConsumerMessage) => any, options?: amqp.Options.Consume) {
+    private async activateConsumerHelper(onMessage: ConsumeFunction, options?: amqp.Options.Consume) {
         const consume = async (msg: amqp.Message | null) => {
             if (!msg) {
                 return;
@@ -181,3 +181,5 @@ export interface QueueSendProperties {
 export interface QueueOptions extends amqp.Options.AssertQueue {
     prefetch?: number,
 }
+
+export type ConsumeFunction = (message: ConsumerMessage) => any;

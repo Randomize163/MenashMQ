@@ -1,4 +1,4 @@
-import client, { QueueSendProperties, ExchangeSendProperties, Connection, Queue, Exchange, EventEmitter, BindingManager, amqp, trycatch, once, ExchangeType, pRetry, QueueOptions } from './internal';
+import client, { QueueSendProperties, ExchangeSendProperties, Connection, Queue, Exchange, EventEmitter, BindingManager, amqp, trycatch, once, ExchangeType, pRetry, QueueOptions, ConsumeFunction } from './internal';
 
 export class Client extends EventEmitter {
     connection: Connection | null = null;
@@ -215,6 +215,10 @@ export class Client extends EventEmitter {
         if (topology.bindings) {
             await this.applyBindings(topology.bindings);
         }
+
+        if (topology.consumers) {
+            await this.activateConsumers(topology.consumers);
+        }
     }
 
     private declareQueues(queues: Topology.QueueParams[]) {
@@ -239,6 +243,15 @@ export class Client extends EventEmitter {
         const promises = bindings.map(binding => {
             const { source, destination, pattern, args } = binding;
             return this.bind(source, destination, pattern, args);
+        });
+
+        return Promise.all(promises);
+    }
+
+    private activateConsumers(consumers: Topology.ConsumerParams[]) {
+        const promises = consumers.map(consumer => {
+            const { queueName, onMessage, options } = consumer;
+            return this.queue(queueName).activateConsumer(onMessage, options);
         });
 
         return Promise.all(promises);
@@ -379,12 +392,19 @@ export namespace Topology {
         pattern?: string,
         args?: any,
     }
+
+    export interface ConsumerParams {
+        queueName: string,
+        onMessage: ConsumeFunction,
+        options?: amqp.Options.Consume,
+    }
 }
 
 export interface Topology {
     exchanges?: Topology.ExchangeParams[];
     queues?: Topology.QueueParams[];
     bindings?: Topology.BindingParams[];
+    consumers?: Topology.ConsumerParams[];
 }
 
 const defaultRetryOptions: pRetry.Options = {

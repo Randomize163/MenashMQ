@@ -1,4 +1,4 @@
-import rabbit, { ConsumerMessage } from '../lib/internal';
+import rabbit, { ConsumerMessage, ConsumeFunction } from '../lib/internal';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as chai from 'chai';
 import { assert } from 'chai';
@@ -83,10 +83,15 @@ describe('Client tests', () => {
     });
 
     describe('declareTopology() tests', () => {
+        beforeEach(async () => {
+            await rabbit.connect(testConfig.rabbit.uri);
+        });
+
+        afterEach(async () => {
+            await rabbit.close();
+        });
 
         it('should declare topology', async () => {
-            await rabbit.connect(testConfig.rabbit.uri);
-
             await rabbit.declareTopology({
                 exchanges: [
                     { name: 'ex1', type: 'fanout' },
@@ -101,7 +106,55 @@ describe('Client tests', () => {
                 ],
             });
 
-            await rabbit.close();
+            assert.isObject(rabbit.queue('q1'));
+            assert.isObject(rabbit.queue('q2'));
+            assert.isObject(rabbit.exchange('ex1'));
+        });
+
+        const consume: ConsumeFunction = (msg: ConsumerMessage) => {
+            console.log(msg.getContent());
+        };
+
+        it('should declare topology with consumers', async () => {
+            await rabbit.declareTopology({
+                exchanges: [
+                    { name: 'ex1', type: 'fanout' },
+                ],
+                queues: [
+                    { name: 'q1' },
+                    { name: 'q2' },
+                ],
+                bindings: [
+                    { source: 'ex1', destination: 'q1' },
+                    { source: 'ex1', destination: 'q2' },
+                ],
+                consumers: [
+                    { queueName: 'q1', onMessage: consume, options: { noAck: true } },
+                    { queueName: 'q2', onMessage: consume, options: { noAck: true } },
+                ],
+            });
+        });
+
+        it('should fail to declare topology with consumer of non existing queue', async () => {
+            const promise = rabbit.declareTopology({
+                exchanges: [
+                    { name: 'ex1', type: 'fanout' },
+                ],
+                queues: [
+                    { name: 'q1' },
+                    { name: 'q2' },
+                ],
+                bindings: [
+                    { source: 'ex1', destination: 'q1' },
+                    { source: 'ex1', destination: 'q2' },
+                ],
+                consumers: [
+                    { queueName: 'q-wrong', onMessage: consume, options: { noAck: true } },
+                    { queueName: 'q2', onMessage: consume, options: { noAck: true } },
+                ],
+            });
+
+            assert.isRejected(promise);
         });
     });
 
