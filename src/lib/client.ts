@@ -134,6 +134,14 @@ export class Client extends EventEmitter {
     }
 
     async declareExchange(name: string, type: ExchangeType, options: amqp.Options.AssertExchange = {}) {
+        if (!name) {
+            throw new Error('Exchange name is a required parameter');
+        }
+
+        if (!type || !Exchange.getTypes().includes(type)) {
+            throw new Error(`Exchange type is a required parameter and should be one of the following options: ${Exchange.getTypes().toString()}`);
+        }
+
         await this.waitForInitialize();
 
         if (this.exchanges[name]) {
@@ -149,6 +157,10 @@ export class Client extends EventEmitter {
     }
 
     async declareQueue(name: string, options: amqp.Options.AssertQueue = {}) {
+        if (!name) {
+            throw new Error('Exchange name is a required parameter');
+        }
+
         await this.waitForInitialize();
 
         if (this.queues[name]) {

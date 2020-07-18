@@ -105,6 +105,51 @@ describe('Client tests', () => {
         });
     });
 
+    describe('declareQueue() tests', () => {
+        beforeEach(async () => {
+            await rabbit.connect(testConfig.rabbit.uri);
+        });
+
+        afterEach(async () => {
+            await rabbit.close();
+        });
+
+        it('should declare queue', async () => {
+            await rabbit.declareQueue('testQueue');
+            await rabbit.deleteQueue('testQueue');
+        });
+
+        it('should fail to declare queue', async () => {
+            // @ts-ignore: error TS2554: Expected 1-2 arguments, but got 0.
+            await assert.isRejected(rabbit.declareQueue());
+        });
+    });
+
+    describe('declareExchange() tests', () => {
+        beforeEach(async () => {
+            await rabbit.connect(testConfig.rabbit.uri);
+        });
+
+        afterEach(async () => {
+            await rabbit.close();
+        });
+
+        it('should declare exchange', async () => {
+            await rabbit.declareExchange('testExchange', 'fanout');
+            await rabbit.deleteExchange('testExchange');
+        });
+
+        it('should fail to declare exchange without a name', async () => {
+            // @ts-ignore: error TS2554: Expected 2-3 arguments, but got 0.
+            await assert.isRejected(rabbit.declareExchange());
+        });
+
+        it('should fail to declare exchange without a type', async () => {
+            // @ts-ignore: error TS2554: Expected 2-3 arguments, but got 0.
+            await assert.isRejected(rabbit.declareExchange('testExchange'));
+        });
+    });
+
     describe('send() tests', () => {
         beforeEach(async () => {
             await rabbit.connect(testConfig.rabbit.uri);

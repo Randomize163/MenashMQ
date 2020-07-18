@@ -79,6 +79,10 @@ export class Exchange extends Channel {
         await client.bind(source, this, pattern, args);
     }
 
+    static getTypes(): ExchangeType[] {
+        return ['fanout', 'topic', 'direct', 'headers'];
+    }
+
     // addConsumer() {}
     // removeConsumer() {}
 }
