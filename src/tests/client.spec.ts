@@ -189,6 +189,77 @@ describe('Client tests', () => {
         });
     });
 
+    describe('queue() tests', () => {
+        beforeEach(async () => {
+            await rabbit.connect(testConfig.rabbit.uri);
+        });
+
+        afterEach(async () => {
+            await rabbit.close();
+        });
+
+        it('should return a queue by name', async () => {
+            assert.throws(() => rabbit.queue('test1'));
+
+            await rabbit.declareQueue('test1');
+            assert.equal(rabbit.queue('test1').name, 'test1');
+
+            await rabbit.declareQueue('test2');
+            assert.equal(rabbit.queue('test2').name, 'test2');
+
+            await rabbit.queue('test1').delete();
+            await rabbit.queue('test2').delete();
+
+            assert.throws(() => rabbit.queue('test1'));
+            assert.throws(() => rabbit.queue('test2'));
+        });
+
+        it('should throw an error if queue was not declared or was deleted', async () => {
+            assert.throws(() => rabbit.queue('some-not-declared-queue-name'));
+
+            await rabbit.declareQueue('test1');
+            assert.equal(rabbit.queue('test1').name, 'test1');
+
+            await rabbit.queue('test1').delete();
+            assert.throws(() => rabbit.queue('test1'));
+        });
+    });
+
+    describe('exchange() tests', () => {
+        beforeEach(async () => {
+            await rabbit.connect(testConfig.rabbit.uri);
+        });
+
+        afterEach(async () => {
+            await rabbit.close();
+        });
+
+        it('should return an exchange by name', async () => {
+            assert.throws(() => rabbit.exchange('test1'));
+
+            await rabbit.declareExchange('test1', 'fanout');
+            assert.equal(rabbit.exchange('test1').name, 'test1');
+
+            await rabbit.declareExchange('test2', 'direct');
+            assert.equal(rabbit.exchange('test2').name, 'test2');
+
+            await rabbit.exchange('test1').delete();
+            await rabbit.exchange('test2').delete();
+
+            assert.throws(() => rabbit.exchange('test1'));
+            assert.throws(() => rabbit.exchange('test2'));
+        });
+
+        it('should throw an error if exchange was not declared or was deleted', async () => {
+            assert.throws(() => rabbit.exchange('some-not-declared-queue-name'));
+
+            await rabbit.declareExchange('test1', 'fanout');
+            assert.equal(rabbit.exchange('test1').name, 'test1');
+
+            await rabbit.exchange('test1').delete();
+            assert.throws(() => rabbit.exchange('test1'));
+        });
+    });
 });
 
 

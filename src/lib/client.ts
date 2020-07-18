@@ -175,6 +175,32 @@ export class Client extends EventEmitter {
         return queue;
     }
 
+    queue(name: string) {
+        if (!name) {
+            throw new Error('Parameter name should be provided for a queue');
+        }
+
+        const queue = this.queues[name];
+        if (!queue) {
+            throw new Error(`Queue with name ${name} was not declared or was deleted`);
+        }
+
+        return queue;
+    }
+
+    exchange(name: string) {
+        if (!name) {
+            throw new Error('Parameter name should be provided for an exchange');
+        }
+
+        const exchange = this.exchanges[name];
+        if (!exchange) {
+            throw new Error(`Exchange with name ${name} was not declared or was deleted`);
+        }
+
+        return exchange;
+    }
+
     async declareTopology(topology: Topology) {
         await this.waitForInitialize();
 

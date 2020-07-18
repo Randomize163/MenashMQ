@@ -66,7 +66,7 @@ MenashMQ is written in Typescript and supports it perfectly!
 
 	import menash, { ConsumerMessage } from 'menashmq';
 
-	await menash.queues['menash-queue'].activateConsumer((msg: ConsumerMessage) => {
+	await menash.queue('menash-queue').activateConsumer((msg: ConsumerMessage) => {
 		const animal = msg.getContent() as IAnimal;
 		console.log('Name:', animal.name);
 		console.log('Type:', animal.type);
@@ -111,9 +111,9 @@ MenashMQ is written in Typescript and supports it perfectly!
 
 - send()
 
-- queues['queueName']
+- queue()
 
-- exchanges['exchangeName']
+- exchange()
 
   
 
