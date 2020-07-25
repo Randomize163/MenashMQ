@@ -27,7 +27,7 @@ const main = async () => {
 
     if (!argv.producer) {
         console.log('[Consumer mode] Waiting for incoming messages...');
-        await rabbit.queues.q2.activateConsumer((message: ConsumerMessage) => {
+        await rabbit.queue('q2').activateConsumer((message: ConsumerMessage) => {
             console.log('q2 received message: ', message.getContent());
             message.ack();
         });
@@ -41,7 +41,7 @@ const main = async () => {
             const message = `Test ${i}/${messageCount - 1}, timeout: ${timeout} ms`;
             console.log(`Sending message: ${message}`);
 
-            await rabbit.exchanges.ex1.send(message);
+            await rabbit.exchange('ex1').send(message);
             await sleep(timeout);
         }
 

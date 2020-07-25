@@ -64,7 +64,7 @@ describe('Queue tests', () => {
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
             assert(queue.isInitialized());
 
-            assert(client.queues[testQueueName] === queue);
+            assert(client.queue(testQueueName) === queue);
         });
 
         it('should declare many queues', async () => {
@@ -74,7 +74,7 @@ describe('Queue tests', () => {
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
                 assert(queue.isInitialized());
 
-                assert(client.queues[testQueueName] === queue);
+                assert(client.queue(testQueueName) === queue);
             }
         });
     });
@@ -86,19 +86,19 @@ describe('Queue tests', () => {
             assert(queue.isInitialized());
 
             await queue.delete();
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should declare and delete many queues', async () => {
             for (let i = 0; i < 50; i++) {
                 const testQueueName = `testQ${i}`;
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queues[testQueueName]);
+                assert(client.queue(testQueueName));
                 assert(queue.isInitialized());
 
                 await queue.delete();
                 assert(!queue.isInitialized());
-                assert(!client.queues[testQueueName]);
+                assert.throws(() => client.queue(testQueueName));
             }
         });
     });
@@ -109,7 +109,7 @@ describe('Queue tests', () => {
                 const testQueueName = `testQ${i}`;
 
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queues[testQueueName]);
+                assert(client.queue(testQueueName));
                 assert(queue.isInitialized());
 
                 for (let j = 1; j < 5; j++) {
@@ -119,7 +119,7 @@ describe('Queue tests', () => {
 
                 await queue.delete();
                 assert(!queue.isInitialized());
-                assert(!client.queues[testQueueName]);
+                assert.throws(() => client.queue(testQueueName));
             }
         });
     });
@@ -128,7 +128,7 @@ describe('Queue tests', () => {
         it('should send to queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-            assert(client.queues[testQueueName]);
+            assert(client.queue(testQueueName));
             assert(queue.isInitialized());
 
             const message = 'Test send queue';
@@ -139,7 +139,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         }).timeout(10000);
     });
 
@@ -152,7 +152,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should activate and deactivate consumer', async () => {
@@ -164,7 +164,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should consume message', async () => {
@@ -189,7 +189,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
     });
 });

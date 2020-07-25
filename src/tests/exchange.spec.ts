@@ -99,7 +99,7 @@ describe('Exchange tests', () => {
 
                     await exchange.delete();
 
-                    assert(!client.exchanges[exchangeName]);
+                    assert.throws(() => client.exchange(exchangeName));
                 }
             }
         });
