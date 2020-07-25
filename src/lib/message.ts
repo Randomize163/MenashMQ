@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { QueueSendProperties, ExchangeSendProperties, amqp, Queue, assert } from './internal';
 
 export class Message {
@@ -38,10 +39,7 @@ export class ConsumerMessage extends Message {
     nacked: boolean = false;
     fields: amqp.MessageFields;
 
-    constructor(
-        private message: amqp.Message,
-        private queue: Queue,
-    ) {
+    constructor(private message: amqp.Message, private queue: Queue) {
         super(message.content, message.properties);
         this.fields = message.fields;
     }

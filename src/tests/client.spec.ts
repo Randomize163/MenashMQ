@@ -1,7 +1,7 @@
-import rabbit, { ConsumerMessage, ConsumeFunction } from '../lib/internal';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as chai from 'chai';
 import { assert } from 'chai';
+import rabbit, { ConsumerMessage, ConsumeFunction } from '../lib/internal';
 import 'mocha';
 
 chai.use(chaiAsPromised);
@@ -9,13 +9,11 @@ chai.use(chaiAsPromised);
 const testConfig = {
     rabbit: {
         uri: 'amqp://localhost',
-    }
-}
+    },
+};
 
 describe('Client tests', () => {
-
     describe('Connect tests', () => {
-
         it('should connect', async () => {
             await rabbit.connect(testConfig.rabbit.uri);
             await rabbit.close();
@@ -26,11 +24,9 @@ describe('Client tests', () => {
             assert.isRejected(rabbit.connect(testConfig.rabbit.uri));
             await rabbit.close();
         });
-
     });
 
     describe('Report error handling tests', () => {
-
         it('should handle reportError', async () => {
             await rabbit.connect(testConfig.rabbit.uri);
 
@@ -47,9 +43,7 @@ describe('Client tests', () => {
             await rabbit.connect(testConfig.rabbit.uri);
 
             await rabbit.declareTopology({
-                exchanges: [
-                    { name: 'ex1', type: 'fanout' },
-                ],
+                exchanges: [{ name: 'ex1', type: 'fanout' }],
                 queues: [
                     { name: 'q1', options: { prefetch: 1 } },
                     { name: 'q2', options: { prefetch: 1 } },
@@ -60,8 +54,7 @@ describe('Client tests', () => {
                 ],
             });
 
-            await rabbit.queues['q2'].activateConsumer((message: ConsumerMessage) => {
-                console.log('q2 received message: ', message.getContent());
+            await rabbit.queues.q2.activateConsumer((message: ConsumerMessage) => {
                 message.ack();
             });
 
@@ -79,7 +72,6 @@ describe('Client tests', () => {
             assert.isRejected(rabbit.connect(testConfig.rabbit.uri));
             await rabbit.close();
         });
-
     });
 
     describe('declareTopology() tests', () => {
@@ -93,13 +85,8 @@ describe('Client tests', () => {
 
         it('should declare topology', async () => {
             await rabbit.declareTopology({
-                exchanges: [
-                    { name: 'ex1', type: 'fanout' },
-                ],
-                queues: [
-                    { name: 'q1' },
-                    { name: 'q2' },
-                ],
+                exchanges: [{ name: 'ex1', type: 'fanout' }],
+                queues: [{ name: 'q1' }, { name: 'q2' }],
                 bindings: [
                     { source: 'ex1', destination: 'q1' },
                     { source: 'ex1', destination: 'q2' },
@@ -111,19 +98,12 @@ describe('Client tests', () => {
             assert.isObject(rabbit.exchange('ex1'));
         });
 
-        const consume: ConsumeFunction = (msg: ConsumerMessage) => {
-            console.log(msg.getContent());
-        };
+        const consume: ConsumeFunction = (_msg: ConsumerMessage) => {};
 
         it('should declare topology with consumers', async () => {
             await rabbit.declareTopology({
-                exchanges: [
-                    { name: 'ex1', type: 'fanout' },
-                ],
-                queues: [
-                    { name: 'q1' },
-                    { name: 'q2' },
-                ],
+                exchanges: [{ name: 'ex1', type: 'fanout' }],
+                queues: [{ name: 'q1' }, { name: 'q2' }],
                 bindings: [
                     { source: 'ex1', destination: 'q1' },
                     { source: 'ex1', destination: 'q2' },
@@ -137,13 +117,8 @@ describe('Client tests', () => {
 
         it('should fail to declare topology with consumer of non existing queue', async () => {
             const promise = rabbit.declareTopology({
-                exchanges: [
-                    { name: 'ex1', type: 'fanout' },
-                ],
-                queues: [
-                    { name: 'q1' },
-                    { name: 'q2' },
-                ],
+                exchanges: [{ name: 'ex1', type: 'fanout' }],
+                queues: [{ name: 'q1' }, { name: 'q2' }],
                 bindings: [
                     { source: 'ex1', destination: 'q1' },
                     { source: 'ex1', destination: 'q2' },
@@ -208,13 +183,8 @@ describe('Client tests', () => {
             await rabbit.connect(testConfig.rabbit.uri);
 
             await rabbit.declareTopology({
-                exchanges: [
-                    { name: 'ex1', type: 'fanout' },
-                ],
-                queues: [
-                    { name: 'q1' },
-                    { name: 'q2' },
-                ],
+                exchanges: [{ name: 'ex1', type: 'fanout' }],
+                queues: [{ name: 'q1' }, { name: 'q2' }],
                 bindings: [
                     { source: 'ex1', destination: 'q1' },
                     { source: 'ex1', destination: 'q2' },
@@ -227,18 +197,18 @@ describe('Client tests', () => {
         });
 
         it('should send', async () => {
-            await rabbit.send('q1', "Test message");
-            await rabbit.send('q2', "Test message");
-            await rabbit.send('ex1', "Test message");
-            await rabbit.send('ex1', "Test message", { persistent: false }, '*');
+            await rabbit.send('q1', 'Test message');
+            await rabbit.send('q2', 'Test message');
+            await rabbit.send('ex1', 'Test message');
+            await rabbit.send('ex1', 'Test message', { persistent: false }, '*');
         });
 
         it('should failed to send', async () => {
-            assert.isRejected(rabbit.send('q0', "Test message"));
-            assert.isRejected(rabbit.send('ex0', "Test message"));
-            assert.isRejected(rabbit.send('q1', "Test message", {}, '123'));
-            await rabbit.send('q2', "Test message");
-            await rabbit.send('ex1', "Test message");
+            assert.isRejected(rabbit.send('q0', 'Test message'));
+            assert.isRejected(rabbit.send('ex0', 'Test message'));
+            assert.isRejected(rabbit.send('q1', 'Test message', {}, '123'));
+            await rabbit.send('q2', 'Test message');
+            await rabbit.send('ex1', 'Test message');
         });
     });
 
@@ -314,5 +284,3 @@ describe('Client tests', () => {
         });
     });
 });
-
-

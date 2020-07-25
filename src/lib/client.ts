@@ -1,4 +1,23 @@
-import client, { QueueSendProperties, ExchangeSendProperties, Connection, Queue, Exchange, EventEmitter, BindingManager, amqp, trycatch, once, ExchangeType, pRetry, QueueOptions, ConsumeFunction } from './internal';
+import client, {
+    QueueSendProperties,
+    ExchangeSendProperties,
+    Connection,
+    Queue,
+    Exchange,
+    EventEmitter,
+    BindingManager,
+    amqp,
+    trycatch,
+    once,
+    ExchangeType,
+    pRetry,
+    QueueOptions,
+    ConsumeFunction,
+} from './internal';
+
+const defaultRetryOptions: pRetry.Options = {
+    retries: 5,
+};
 
 export class Client extends EventEmitter {
     connection: Connection | null = null;
@@ -52,6 +71,7 @@ export class Client extends EventEmitter {
             return;
         }
 
+        // eslint-disable-next-line no-console
         console.log(`[RabbitMQ Client] Client is ready`);
 
         this.isReady = true;
@@ -77,14 +97,14 @@ export class Client extends EventEmitter {
 
         this.bindings.clearBindings();
 
-        await this.closeAllQueues()
-            .catch(err => console.error('closeAllQueues() failed with error:', err));
+        // eslint-disable-next-line no-console
+        await this.closeAllQueues().catch((err) => console.error('closeAllQueues() failed with error:', err));
 
-        await this.closeAllExchanges()
-            .catch(err => console.error('closeAllExchanges() failed with error:', err));
+        // eslint-disable-next-line no-console
+        await this.closeAllExchanges().catch((err) => console.error('closeAllExchanges() failed with error:', err));
 
-        await this.connection!.close()
-            .catch((err: Error) => console.error(`[Client] Connection close() failed with error`, err.toString()));
+        // eslint-disable-next-line no-console
+        await this.connection!.close().catch((err: Error) => console.error(`[Client] Connection close() failed with error`, err.toString()));
 
         this.exchanges = {};
         this.queues = {};
@@ -95,8 +115,8 @@ export class Client extends EventEmitter {
 
     private closeAllQueues() {
         const promises: Promise<void>[] = [];
-        for (const queueName in this.queues) {
-            promises.push(this.queues[queueName].close());
+        for (const queue of Object.values(this.queues)) {
+            promises.push(queue.close());
         }
 
         return Promise.all(promises);
@@ -104,8 +124,8 @@ export class Client extends EventEmitter {
 
     private closeAllExchanges() {
         const promises: Promise<void>[] = [];
-        for (const exchangeName in this.exchanges) {
-            promises.push(this.exchanges[exchangeName].close());
+        for (const exchange of Object.values(this.exchanges)) {
+            promises.push(exchange.close());
         }
 
         return Promise.all(promises);
@@ -126,7 +146,9 @@ export class Client extends EventEmitter {
             return;
         }
 
+        // eslint-disable-next-line no-console
         console.log(`[RabbitMQ Client] Source '${source}' reported error: `, err.toString());
+        // eslint-disable-next-line no-console
         console.log(`[RabbitMQ Client] Starting reinitialize...`);
 
         this.isReady = false;
@@ -222,7 +244,7 @@ export class Client extends EventEmitter {
     }
 
     private declareQueues(queues: Topology.QueueParams[]) {
-        const promises = queues.map(queue => {
+        const promises = queues.map((queue) => {
             const { name, options } = queue;
             return this.declareQueue(name, options);
         });
@@ -231,7 +253,7 @@ export class Client extends EventEmitter {
     }
 
     private declareExchanges(exchanges: Topology.ExchangeParams[]) {
-        const promises = exchanges.map(exchange => {
+        const promises = exchanges.map((exchange) => {
             const { name, type, options } = exchange;
             return this.declareExchange(name, type, options);
         });
@@ -240,7 +262,7 @@ export class Client extends EventEmitter {
     }
 
     private applyBindings(bindings: Topology.BindingParams[]) {
-        const promises = bindings.map(binding => {
+        const promises = bindings.map((binding) => {
             const { source, destination, pattern, args } = binding;
             return this.bind(source, destination, pattern, args);
         });
@@ -249,7 +271,7 @@ export class Client extends EventEmitter {
     }
 
     private activateConsumers(consumers: Topology.ConsumerParams[]) {
-        const promises = consumers.map(consumer => {
+        const promises = consumers.map((consumer) => {
             const { queueName, onMessage, options } = consumer;
             return this.queue(queueName).activateConsumer(onMessage, options);
         });
@@ -258,12 +280,12 @@ export class Client extends EventEmitter {
     }
 
     private async rebuildTopology() {
-        for (const exchangeName in this.exchanges) {
-            await this.exchanges[exchangeName].initialize();
+        for (const exchange of Object.values(this.exchanges)) {
+            await exchange.initialize();
         }
 
-        for (const queueName in this.queues) {
-            await this.queues[queueName].initialize();
+        for (const queue of Object.values(this.queues)) {
+            await queue.initialize();
         }
 
         await this.bindings.rebindAll();
@@ -323,28 +345,24 @@ export class Client extends EventEmitter {
             throw new Error(`There is no entity with name ${entityName}`);
         }
 
-        return exchange ? exchange : queue;
+        return exchange || queue;
     }
 
     async bind(source: Exchange | string, destination: Exchange | Queue | string, pattern: string = '', args?: any) {
         await this.waitForInitialize();
 
-        if (typeof source === 'string') {
-            if (!this.exchanges[source]) {
-                throw new Error(`Exchange with name ${source} was not declared`);
-            }
+        const sourceEntity = typeof source === 'string' ? this.exchange(source) : source;
+        const destinationEntity = typeof destination === 'string' ? this.getEntityByName(destination) : destination;
 
-            source = this.exchanges[source];
-        }
-
-        if (typeof destination === 'string') {
-            destination = this.getEntityByName(destination);
-        }
-
-        await this.bindings.addBinding(source, destination, pattern, args);
+        await this.bindings.addBinding(sourceEntity, destinationEntity, pattern, args);
     }
 
-    async send(entityName: string, content: string | Object | Buffer, properties?: ExchangeSendProperties | QueueSendProperties, routingKey?: string) {
+    async send(
+        entityName: string,
+        content: string | Object | Buffer,
+        properties?: ExchangeSendProperties | QueueSendProperties,
+        routingKey?: string,
+    ) {
         if (this.exchanges[entityName]) {
             return this.exchanges[entityName].send(content, routingKey, properties);
         }
@@ -362,41 +380,38 @@ export class Client extends EventEmitter {
 }
 
 export const tryOnce = async (func: Function, source: ErrorSource) => {
-    return pRetry(
-        () => func(),
-        {
-            retries: 1,
-            onFailedAttempt: async (error) => {
-                client.reportError(source, error);
-                await client.waitForInitialize();
-            },
-        }
-    );
-}
+    return pRetry(() => func(), {
+        retries: 1,
+        onFailedAttempt: async (error) => {
+            client.reportError(source, error);
+            await client.waitForInitialize();
+        },
+    });
+};
 
 export namespace Topology {
     export interface ExchangeParams {
-        name: string,
-        type: ExchangeType,
-        options?: amqp.Options.AssertExchange,
+        name: string;
+        type: ExchangeType;
+        options?: amqp.Options.AssertExchange;
     }
 
     export interface QueueParams {
-        name: string,
-        options?: QueueOptions,
+        name: string;
+        options?: QueueOptions;
     }
 
     export interface BindingParams {
-        source: string,
-        destination: string,
-        pattern?: string,
-        args?: any,
+        source: string;
+        destination: string;
+        pattern?: string;
+        args?: any;
     }
 
     export interface ConsumerParams {
-        queueName: string,
-        onMessage: ConsumeFunction,
-        options?: amqp.Options.Consume,
+        queueName: string;
+        onMessage: ConsumeFunction;
+        options?: amqp.Options.Consume;
     }
 }
 
@@ -405,10 +420,6 @@ export interface Topology {
     queues?: Topology.QueueParams[];
     bindings?: Topology.BindingParams[];
     consumers?: Topology.ConsumerParams[];
-}
-
-const defaultRetryOptions: pRetry.Options = {
-    retries: 5,
 }
 
 export type ErrorSource = 'connection' | 'channel' | 'queue' | 'consumer' | 'exchange';

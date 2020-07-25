@@ -6,23 +6,15 @@ import { Message } from '../lib/internal';
 
 chai.use(chaiAsPromised);
 
-// const testConfig = {
-//     rabbit: {
-//         uri: 'amqp://localhost',
-//     }
-// }
-
-//const exchangeTypes: ExchangeType[] = ['direct', 'fanout', 'topic', 'headers'];
-
 const contentObject = {
     first: 'value',
     second: 2,
-    third: [ 1, 2, 3 ],
+    third: [1, 2, 3],
     b: false,
     rec: {
         first: 'value',
         second: 2,
-        third: [ 1, 2, 3 ],
+        third: [1, 2, 3],
         b: false,
     },
 };
@@ -30,7 +22,6 @@ const contentObject = {
 const contentString = 'Test content for getContent()';
 
 describe('Message tests', () => {
-
     describe('Content tests', () => {
         it('should setContent as Object', () => {
             const message = new Message(contentObject);
@@ -39,7 +30,6 @@ describe('Message tests', () => {
         });
 
         it('should setContent as String', () => {
-
             const message = new Message(contentString);
 
             assert.equal(message.getContent(), contentString);
@@ -53,5 +43,4 @@ describe('Message tests', () => {
             assert.equal(message.getContent(), contentString);
         });
     });
-
 });

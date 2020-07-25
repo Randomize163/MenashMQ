@@ -9,12 +9,11 @@ chai.use(chaiAsPromised);
 const testConfig = {
     rabbit: {
         uri: 'amqp://localhost',
-    }
-}
+    },
+};
 
 describe('Channel tests', () => {
-
-    let connection = new Connection(testConfig.rabbit.uri);
+    const connection = new Connection(testConfig.rabbit.uri);
 
     beforeEach(async () => {
         await connection.initialize();
@@ -27,7 +26,6 @@ describe('Channel tests', () => {
     });
 
     describe('Initialize tests', () => {
-
         it('should initialize and close channel', async () => {
             const channel = new Channel(connection);
 
@@ -54,7 +52,6 @@ describe('Channel tests', () => {
     });
 
     describe('Prefetch tests', () => {
-
         it('should configure prefetch', async () => {
             const channel = new Channel(connection);
 

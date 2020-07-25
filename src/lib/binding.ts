@@ -1,14 +1,12 @@
 import { Exchange, Queue, isDeepStrictEqual } from './internal';
 
-export type Binding = { source: Exchange, destination: Exchange | Queue, pattern: string, args?: any };
+export type Binding = { source: Exchange; destination: Exchange | Queue; pattern: string; args?: any };
 
 export class BindingManager {
     bindings: Binding[] = [];
 
-    constructor() {}
-
     rebindAll() {
-        const promises = this.bindings.map(binding => {
+        const promises = this.bindings.map((binding) => {
             const { source, destination, pattern, args } = binding;
             return BindingManager.bind(source, destination, pattern, args);
         });
@@ -17,7 +15,7 @@ export class BindingManager {
     }
 
     unbindAll() {
-        const promises = this.bindings.map(binding => {
+        const promises = this.bindings.map((binding) => {
             const { source, destination, pattern, args } = binding;
             return this.removeBinding(source, destination, pattern, args);
         });
@@ -89,7 +87,7 @@ export class BindingManager {
     }
 
     removeBindingFromArray(binding: Binding) {
-        this.bindings = this.bindings.filter(arrayBinding => binding !== arrayBinding);
+        this.bindings = this.bindings.filter((arrayBinding) => binding !== arrayBinding);
     }
 
     async unbindAllBindingsForEntity(entity: Exchange | Queue) {
@@ -132,8 +130,7 @@ export class BindingManager {
 
     static byEntity(entity: Exchange | Queue) {
         return (binding: Binding) => {
-            return BindingManager.isSameEntity(binding.source, entity)
-                || BindingManager.isSameEntity(binding.destination, entity);
+            return BindingManager.isSameEntity(binding.source, entity) || BindingManager.isSameEntity(binding.destination, entity);
         };
     }
 
@@ -157,9 +154,11 @@ export class BindingManager {
 
     static byExactMatch(source: Exchange, destination: Exchange | Queue, pattern?: string, args?: any) {
         return (binding: Binding) => {
-            return BindingManager.bySourceAndDestinationPredicate(source, destination)(binding)
-                && binding.pattern === pattern
-                && isDeepStrictEqual(binding.args, args);
+            return (
+                BindingManager.bySourceAndDestinationPredicate(source, destination)(binding) &&
+                binding.pattern === pattern &&
+                isDeepStrictEqual(binding.args, args)
+            );
         };
     }
 }

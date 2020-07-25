@@ -3,12 +3,7 @@ import client, { Channel, Message, Connection, amqp, assert, tryOnce } from './i
 export class Exchange extends Channel {
     exchangeAsserted = false;
 
-    constructor(
-        connection: Connection,
-        public name: string,
-        public type: ExchangeType,
-        public options: amqp.Options.AssertExchange = {})
-    {
+    constructor(connection: Connection, public name: string, public type: ExchangeType, public options: amqp.Options.AssertExchange = {}) {
         super(connection);
     }
 
@@ -21,8 +16,7 @@ export class Exchange extends Channel {
 
         try {
             await this.channel!.assertExchange(this.name, this.type, this.options);
-        }
-        catch (err) {
+        } catch (err) {
             await super.close();
             return;
         }
@@ -37,8 +31,8 @@ export class Exchange extends Channel {
             return;
         }
 
-        await super.close()
-            .catch(err => console.error(`Channel.close() for ${this.name} failed with error:`, err));
+        // eslint-disable-next-line no-console
+        await super.close().catch((err) => console.error(`Channel.close() for ${this.name} failed with error:`, err));
 
         this.exchangeAsserted = false;
 
@@ -56,7 +50,25 @@ export class Exchange extends Channel {
 
         const message = new Message(content, properties);
 
-        await tryOnce(() => publishHelper(this.channel!, this.name, routingKey, message.getRawContent(), message.properties), 'exchange');
+        await tryOnce(() => Exchange.publishHelper(this.channel!, this.name, routingKey, message.getRawContent(), message.properties), 'exchange');
+    }
+
+    private static publishHelper(
+        channel: amqp.ConfirmChannel,
+        exchange: string,
+        routingKey: string,
+        content: Buffer,
+        options?: amqp.Options.Publish,
+    ) {
+        return new Promise((resolve, reject) => {
+            channel.publish(exchange, routingKey, content, options, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 
     async delete(ifUnused?: boolean) {
@@ -87,18 +99,6 @@ export class Exchange extends Channel {
     // removeConsumer() {}
 }
 
-const publishHelper = (channel: amqp.ConfirmChannel, exchange: string, routingKey: string, content: Buffer, options?: amqp.Options.Publish) => {
-    return new Promise((resolve, reject) => {
-        channel.publish(exchange, routingKey, content, options, (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
-};
-
-export interface ExchangeSendProperties extends amqp.Options.Publish { }
+export interface ExchangeSendProperties extends amqp.Options.Publish {}
 
 export type ExchangeType = 'fanout' | 'topic' | 'direct' | 'headers';

@@ -10,26 +10,10 @@ chai.use(chaiAsPromised);
 const testConfig = {
     rabbit: {
         uri: 'amqp://localhost',
-    }
-}
-
-// const contentObject = {
-//     first: 'value',
-//     second: 2,
-//     third: [ 1, 2, 3 ],
-//     b: false,
-//     rec: {
-//         first: 'value',
-//         second: 2,
-//         third: [ 1, 2, 3 ],
-//         b: false,
-//     },
-// };
-
-// const contentString = 'Test content for getContent()';
+    },
+};
 
 describe('Queue tests', () => {
-
     beforeEach(async () => {
         await client.connect(testConfig.rabbit.uri);
     });
@@ -74,14 +58,13 @@ describe('Queue tests', () => {
     });
 
     describe('Declare queue tests', () => {
-
         it('should declare queue', async () => {
             const testQueueName = 'testQ';
 
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
             assert(queue.isInitialized());
 
-            assert(client.queues[testQueueName] === queue);
+            assert(client.queue(testQueueName) === queue);
         });
 
         it('should declare many queues', async () => {
@@ -91,46 +74,42 @@ describe('Queue tests', () => {
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
                 assert(queue.isInitialized());
 
-                assert(client.queues[testQueueName] === queue);
+                assert(client.queue(testQueueName) === queue);
             }
         });
-
     });
 
     describe('Delete queue tests', () => {
-
         it('should declare and delete queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
             assert(queue.isInitialized());
 
             await queue.delete();
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should declare and delete many queues', async () => {
             for (let i = 0; i < 50; i++) {
                 const testQueueName = `testQ${i}`;
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queues[testQueueName]);
+                assert(client.queue(testQueueName));
                 assert(queue.isInitialized());
 
                 await queue.delete();
                 assert(!queue.isInitialized());
-                assert(!client.queues[testQueueName]);
+                assert.throws(() => client.queue(testQueueName));
             }
         });
-
     });
 
     describe('Prefetch queue tests', () => {
-
         it('should set prefetch', async () => {
             for (let i = 0; i < 50; i++) {
                 const testQueueName = `testQ${i}`;
 
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queues[testQueueName]);
+                assert(client.queue(testQueueName));
                 assert(queue.isInitialized());
 
                 for (let j = 1; j < 5; j++) {
@@ -140,18 +119,16 @@ describe('Queue tests', () => {
 
                 await queue.delete();
                 assert(!queue.isInitialized());
-                assert(!client.queues[testQueueName]);
+                assert.throws(() => client.queue(testQueueName));
             }
         });
-
     });
 
     describe('Send queue tests', () => {
-
         it('should send to queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-            assert(client.queues[testQueueName]);
+            assert(client.queue(testQueueName));
             assert(queue.isInitialized());
 
             const message = 'Test send queue';
@@ -162,13 +139,11 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         }).timeout(10000);
-
     });
 
     describe('Consume tests', () => {
-
         it('should activate consumer', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
@@ -177,7 +152,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should activate and deactivate consumer', async () => {
@@ -189,21 +164,24 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
 
         it('should consume message', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
 
-            const content = "Test message";
+            const content = 'Test message';
 
             const sendFinished = new Event();
 
-            await queue.activateConsumer((message: ConsumerMessage) => {
-                assert(message.getContent() === content);
-                sendFinished.signal();
-            }, { noAck: true });
+            await queue.activateConsumer(
+                (message: ConsumerMessage) => {
+                    assert(message.getContent() === content);
+                    sendFinished.signal();
+                },
+                { noAck: true },
+            );
 
             await queue.send(content);
 
@@ -211,9 +189,7 @@ describe('Queue tests', () => {
 
             await queue.delete();
             assert(!queue.isInitialized());
-            assert(!client.queues[testQueueName]);
+            assert.throws(() => client.queue(testQueueName));
         });
-
     });
-
 });

@@ -1,9 +1,9 @@
-import client, { amqp } from "./internal";
+import client, { amqp } from './internal';
 
 export class Connection {
     connection: amqp.Connection | null = null;
 
-    constructor(private url: string | amqp.Options.Connect, private socketOptions?: any) { }
+    constructor(private url: string | amqp.Options.Connect, private socketOptions?: any) {}
 
     async initialize() {
         if (this.connection) {
@@ -28,13 +28,14 @@ export class Connection {
             return;
         }
 
-        const connection = this.connection;
+        const { connection } = this;
         this.connection = null;
 
         connection.removeAllListeners('error');
         connection.removeAllListeners('close');
 
-        await connection.close().catch(err => {
+        await connection.close().catch((err) => {
+            // eslint-disable-next-line no-console
             console.log(`Warning: failed to close connection with error`, err);
         });
     }
