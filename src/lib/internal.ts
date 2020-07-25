@@ -1,6 +1,8 @@
+import * as pRetry from 'p-retry';
+
 export * as amqp from 'amqplib';
 export { strict as assert } from 'assert';
-import pRetry = require('p-retry');
+
 export { pRetry };
 export { EventEmitter, once } from 'events';
 export { isDeepStrictEqual } from 'util';
@@ -13,6 +15,8 @@ export * from './exchange';
 export * from './message';
 export * from './binding';
 export * from './client';
+
+// eslint-disable-next-line import/first
 import { Client } from './client';
 
 const client = new Client();

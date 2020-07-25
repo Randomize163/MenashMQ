@@ -4,7 +4,7 @@ export class Channel {
     channel: amqp.ConfirmChannel | null = null;
     private prefetchCount: number;
 
-    constructor(public connection: Connection) { }
+    constructor(public connection: Connection) {}
 
     async initialize() {
         if (this.isInitialized()) {
@@ -39,8 +39,8 @@ export class Channel {
         channel.removeAllListeners('error');
         channel.removeAllListeners('close');
 
-        await channel.close()
-            .catch(err => console.error(`Channel close failed with error:`, err));
+        // eslint-disable-next-line no-console
+        await channel.close().catch((err) => console.error(`Channel close failed with error:`, err));
     }
 
     isInitialized() {

@@ -9,14 +9,13 @@ chai.use(chaiAsPromised);
 const testConfig = {
     rabbit: {
         uri: 'amqp://localhost',
-    }
-}
+    },
+};
 
 const exchangeTypes: ExchangeType[] = ['direct', 'fanout', 'topic', 'headers'];
 
 describe('Exchange tests', () => {
-
-    let connection = new Connection(testConfig.rabbit.uri);
+    const connection = new Connection(testConfig.rabbit.uri);
 
     beforeEach(async () => {
         await connection.initialize();
@@ -29,7 +28,6 @@ describe('Exchange tests', () => {
     });
 
     describe('Initialize tests', () => {
-
         it('should initialize and close exchange', async () => {
             const exchange = new Exchange(connection, 'testEx1', 'direct', { autoDelete: true, durable: false });
 

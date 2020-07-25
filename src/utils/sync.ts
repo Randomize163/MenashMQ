@@ -1,7 +1,8 @@
-import { EventEmitter, once } from 'events'
+import { EventEmitter, once } from 'events';
 
 export class Event {
     private event: EventEmitter;
+
     private signaled: boolean = false;
 
     constructor() {

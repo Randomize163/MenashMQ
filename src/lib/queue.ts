@@ -7,10 +7,7 @@ export class Queue extends Channel {
 
     queueAsserted = false;
 
-    constructor(
-        connection: Connection,
-        public name: string,
-        public options: QueueOptions = {}) {
+    constructor(connection: Connection, public name: string, public options: QueueOptions = {}) {
         super(connection);
     }
 
@@ -25,7 +22,7 @@ export class Queue extends Channel {
             await this.channel!.assertQueue(this.name, this.options);
 
             if (this.options.prefetch) {
-                await this.channel!.prefetch(this.options.prefetch)
+                await this.channel!.prefetch(this.options.prefetch);
             }
 
             if (this.consumerTag) {
@@ -128,17 +125,19 @@ export class Queue extends Channel {
 
             const { err } = await trycatch(() => onMessage(message));
             if (err) {
-                client.reportError('consumer', new Error(`[BUG] Consumer function of queue ${this.name} throws exception. Message will be rejected. Error: ${stringify(err)}`));
-                if (this.consumerOptions?.noAck == false) {
+                client.reportError(
+                    'consumer',
+                    new Error(`[BUG] Consumer function of queue ${this.name} throws exception. Message will be rejected. Error: ${stringify(err)}`),
+                );
+                if (this.consumerOptions?.noAck === false) {
                     message.nack(false);
                 }
                 return;
             }
 
-            if (this.consumerOptions?.noAck == false && !message.isProcessed()) {
+            if (this.consumerOptions?.noAck === false && !message.isProcessed()) {
                 client.reportError('consumer', new Error(`[BUG] Consumer function of queue ${this.name} should ack, nack or reject message.`));
                 message.nack(false);
-                return;
             }
         };
 
@@ -179,7 +178,7 @@ export interface QueueSendProperties {
 }
 
 export interface QueueOptions extends amqp.Options.AssertQueue {
-    prefetch?: number,
+    prefetch?: number;
 }
 
 export type ConsumeFunction = (message: ConsumerMessage) => any;

@@ -10,26 +10,10 @@ chai.use(chaiAsPromised);
 const testConfig = {
     rabbit: {
         uri: 'amqp://localhost',
-    }
-}
-
-// const contentObject = {
-//     first: 'value',
-//     second: 2,
-//     third: [ 1, 2, 3 ],
-//     b: false,
-//     rec: {
-//         first: 'value',
-//         second: 2,
-//         third: [ 1, 2, 3 ],
-//         b: false,
-//     },
-// };
-
-// const contentString = 'Test content for getContent()';
+    },
+};
 
 describe('Queue tests', () => {
-
     beforeEach(async () => {
         await client.connect(testConfig.rabbit.uri);
     });
@@ -74,7 +58,6 @@ describe('Queue tests', () => {
     });
 
     describe('Declare queue tests', () => {
-
         it('should declare queue', async () => {
             const testQueueName = 'testQ';
 
@@ -94,11 +77,9 @@ describe('Queue tests', () => {
                 assert(client.queues[testQueueName] === queue);
             }
         });
-
     });
 
     describe('Delete queue tests', () => {
-
         it('should declare and delete queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
@@ -120,11 +101,9 @@ describe('Queue tests', () => {
                 assert(!client.queues[testQueueName]);
             }
         });
-
     });
 
     describe('Prefetch queue tests', () => {
-
         it('should set prefetch', async () => {
             for (let i = 0; i < 50; i++) {
                 const testQueueName = `testQ${i}`;
@@ -143,11 +122,9 @@ describe('Queue tests', () => {
                 assert(!client.queues[testQueueName]);
             }
         });
-
     });
 
     describe('Send queue tests', () => {
-
         it('should send to queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
@@ -164,11 +141,9 @@ describe('Queue tests', () => {
             assert(!queue.isInitialized());
             assert(!client.queues[testQueueName]);
         }).timeout(10000);
-
     });
 
     describe('Consume tests', () => {
-
         it('should activate consumer', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
@@ -196,14 +171,17 @@ describe('Queue tests', () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
 
-            const content = "Test message";
+            const content = 'Test message';
 
             const sendFinished = new Event();
 
-            await queue.activateConsumer((message: ConsumerMessage) => {
-                assert(message.getContent() === content);
-                sendFinished.signal();
-            }, { noAck: true });
+            await queue.activateConsumer(
+                (message: ConsumerMessage) => {
+                    assert(message.getContent() === content);
+                    sendFinished.signal();
+                },
+                { noAck: true },
+            );
 
             await queue.send(content);
 
@@ -213,7 +191,5 @@ describe('Queue tests', () => {
             assert(!queue.isInitialized());
             assert(!client.queues[testQueueName]);
         });
-
     });
-
 });
