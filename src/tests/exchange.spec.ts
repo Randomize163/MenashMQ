@@ -1,10 +1,4 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
-import 'mocha';
 import client, { Connection, Exchange, ExchangeType } from '../lib/internal';
-
-chai.use(chaiAsPromised);
 
 const testConfig = {
     rabbit: {
@@ -19,12 +13,12 @@ describe('Exchange tests', () => {
 
     beforeEach(async () => {
         await connection.initialize();
-        assert(connection.isConnected());
+        expect(connection.isConnected()).toBeTruthy();
     });
 
     afterEach(async () => {
         await connection.close();
-        assert(!connection.isConnected());
+        expect(connection.isConnected()).toBeFalsy();
     });
 
     describe('Initialize tests', () => {
@@ -33,10 +27,10 @@ describe('Exchange tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 await exchange.initialize();
-                assert(exchange.isInitialized());
+                expect(exchange.isInitialized()).toBeTruthy();
 
                 await exchange.close();
-                assert(!exchange.isInitialized());
+                expect(exchange.isInitialized()).toBeFalsy();
             }
         });
 
@@ -46,11 +40,11 @@ describe('Exchange tests', () => {
 
                 for (let i = 0; i < 50; i++) {
                     await exchange.initialize();
-                    assert(exchange.isInitialized());
+                    expect(exchange.isInitialized()).toBeTruthy();
                 }
 
                 await exchange.close();
-                assert(!exchange.isInitialized());
+                expect(exchange.isInitialized()).toBeFalsy();
             }
         });
     });
@@ -69,13 +63,13 @@ describe('Exchange tests', () => {
                 const exchangeName = `testEx3${exchangeType}`;
 
                 const exchange = await client.declareExchange(exchangeName, exchangeType, { autoDelete: true, durable: false });
-                assert(exchange.isInitialized());
+                expect(exchange.isInitialized()).toBeTruthy();
 
                 for (let i = 0; i < 500; i++) {
                     await exchange.send('send test message');
                 }
 
-                assert(exchange.isInitialized());
+                expect(exchange.isInitialized()).toBeTruthy();
             }
         });
     });
@@ -95,11 +89,11 @@ describe('Exchange tests', () => {
 
                 for (let i = 0; i < 15; i++) {
                     const exchange = await client.declareExchange(exchangeName, exchangeType, { autoDelete: true, durable: false });
-                    assert(exchange.isInitialized());
+                    expect(exchange.isInitialized()).toBeTruthy();
 
                     await exchange.delete();
 
-                    assert.throws(() => client.exchange(exchangeName));
+                    expect(() => client.exchange(exchangeName)).toThrow();
                 }
             }
         });

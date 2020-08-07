@@ -1,10 +1,4 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
-import 'mocha';
 import { Connection, Channel } from '../lib/internal';
-
-chai.use(chaiAsPromised);
 
 const testConfig = {
     rabbit: {
@@ -17,12 +11,12 @@ describe('Channel tests', () => {
 
     beforeEach(async () => {
         await connection.initialize();
-        assert(connection.isConnected());
+        expect(connection.isConnected()).toBeTruthy();
     });
 
     afterEach(async () => {
         await connection.close();
-        assert(!connection.isConnected());
+        expect(connection.isConnected()).toBeFalsy();
     });
 
     describe('Initialize tests', () => {
@@ -31,10 +25,10 @@ describe('Channel tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 await channel.initialize();
-                assert(channel.isInitialized());
+                expect(channel.isInitialized()).toBeTruthy();
 
                 await channel.close();
-                assert(!channel.isInitialized());
+                expect(channel.isInitialized()).toBeFalsy();
             }
         });
 
@@ -43,11 +37,11 @@ describe('Channel tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 await channel.initialize();
-                assert(channel.isInitialized());
+                expect(channel.isInitialized()).toBeTruthy();
             }
 
             await channel.close();
-            assert(!channel.isInitialized());
+            expect(channel.isInitialized()).toBeFalsy();
         });
     });
 
@@ -56,14 +50,14 @@ describe('Channel tests', () => {
             const channel = new Channel(connection);
 
             await channel.initialize();
-            assert(channel.isInitialized());
+            expect(channel.isInitialized()).toBeTruthy();
 
             for (let i = 1; i < 500; i += 5) {
                 await channel.prefetch(i);
             }
 
             await channel.close();
-            assert(!channel.isInitialized());
+            expect(channel.isInitialized()).toBeFalsy();
         });
     });
 });

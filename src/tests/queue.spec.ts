@@ -1,11 +1,5 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
-import 'mocha';
 import client, { Queue, Connection, ConsumerMessage } from '../lib/internal';
 import { Event } from '../utils/sync';
-
-chai.use(chaiAsPromised);
 
 const testConfig = {
     rabbit: {
@@ -27,33 +21,33 @@ describe('Queue tests', () => {
 
         beforeEach(async () => {
             await connection.initialize();
-            assert(connection.isConnected());
+            expect(connection.isConnected()).toBeTruthy();
         });
 
         afterEach(async () => {
             await connection.close();
-            assert(!connection.isConnected());
+            expect(connection.isConnected()).toBeFalsy();
         });
 
         it('should initialize() and close()', async () => {
             const queue = new Queue(connection, 'testQ', { durable: false, autoDelete: true });
             await queue.initialize();
-            assert(queue.isInitialized());
+            expect(queue.isInitialized()).toBeTruthy();
 
             await queue.close();
-            assert(!queue.isInitialized());
+            expect(queue.isInitialized()).toBeFalsy();
         });
 
-        it('should self close during initialize() ', () => async () => {
+        it('should self close during initialize() ', async () => {
             const queue = new Queue(connection, 'testQ', { durable: false, autoDelete: true });
 
             for (let i = 0; i < 15; i++) {
                 await queue.initialize();
-                assert(queue.isInitialized());
+                expect(queue.isInitialized()).toBeTruthy();
             }
 
             await queue.close();
-            assert(!queue.isInitialized());
+            expect(queue.isInitialized()).toBeFalsy();
         });
     });
 
@@ -62,9 +56,9 @@ describe('Queue tests', () => {
             const testQueueName = 'testQ';
 
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-            assert(queue.isInitialized());
+            expect(queue.isInitialized()).toBeTruthy();
 
-            assert(client.queue(testQueueName) === queue);
+            expect(client.queue(testQueueName)).toBe(queue);
         });
 
         it('should declare many queues', async () => {
@@ -72,9 +66,9 @@ describe('Queue tests', () => {
                 const testQueueName = `testQ${i}`;
 
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(queue.isInitialized());
+                expect(queue.isInitialized()).toBeTruthy();
 
-                assert(client.queue(testQueueName) === queue);
+                expect(client.queue(testQueueName)).toBe(queue);
             }
         });
     });
@@ -83,22 +77,22 @@ describe('Queue tests', () => {
         it('should declare and delete queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-            assert(queue.isInitialized());
+            expect(queue.isInitialized()).toBeTruthy();
 
             await queue.delete();
-            assert.throws(() => client.queue(testQueueName));
+            expect(() => client.queue(testQueueName)).toThrow();
         });
 
         it('should declare and delete many queues', async () => {
             for (let i = 0; i < 50; i++) {
                 const testQueueName = `testQ${i}`;
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queue(testQueueName));
-                assert(queue.isInitialized());
+                expect(client.queue(testQueueName)).toBeTruthy();
+                expect(queue.isInitialized()).toBeTruthy();
 
                 await queue.delete();
-                assert(!queue.isInitialized());
-                assert.throws(() => client.queue(testQueueName));
+                expect(queue.isInitialized()).toBeFalsy();
+                expect(() => client.queue(testQueueName)).toThrow();
             }
         });
     });
@@ -109,17 +103,17 @@ describe('Queue tests', () => {
                 const testQueueName = `testQ${i}`;
 
                 const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-                assert(client.queue(testQueueName));
-                assert(queue.isInitialized());
+                expect(client.queue(testQueueName)).toBeTruthy();
+                expect(queue.isInitialized()).toBeTruthy();
 
                 for (let j = 1; j < 5; j++) {
                     await queue.prefetch(j);
-                    assert(queue.options.prefetch === j);
+                    expect(queue.options.prefetch).toEqual(j);
                 }
 
                 await queue.delete();
-                assert(!queue.isInitialized());
-                assert.throws(() => client.queue(testQueueName));
+                expect(queue.isInitialized()).toBeFalsy();
+                expect(() => client.queue(testQueueName)).toThrow();
             }
         });
     });
@@ -128,8 +122,8 @@ describe('Queue tests', () => {
         it('should send to queue', async () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
-            assert(client.queue(testQueueName));
-            assert(queue.isInitialized());
+            expect(client.queue(testQueueName)).toBe(queue);
+            expect(queue.isInitialized()).toBeTruthy();
 
             const message = 'Test send queue';
 
@@ -138,9 +132,9 @@ describe('Queue tests', () => {
             }
 
             await queue.delete();
-            assert(!queue.isInitialized());
-            assert.throws(() => client.queue(testQueueName));
-        }).timeout(10000);
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
+        });
     });
 
     describe('Consume tests', () => {
@@ -151,8 +145,8 @@ describe('Queue tests', () => {
             await queue.activateConsumer((_message) => {}, { noAck: true });
 
             await queue.delete();
-            assert(!queue.isInitialized());
-            assert.throws(() => client.queue(testQueueName));
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
         });
 
         it('should activate and deactivate consumer', async () => {
@@ -163,8 +157,8 @@ describe('Queue tests', () => {
             await queue.stopConsumer();
 
             await queue.delete();
-            assert(!queue.isInitialized());
-            assert.throws(() => client.queue(testQueueName));
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
         });
 
         it('should consume message', async () => {
@@ -177,7 +171,7 @@ describe('Queue tests', () => {
 
             await queue.activateConsumer(
                 (message: ConsumerMessage) => {
-                    assert(message.getContent() === content);
+                    expect(message.getContent()).toBe(content);
                     sendFinished.signal();
                 },
                 { noAck: true },
@@ -188,8 +182,8 @@ describe('Queue tests', () => {
             await sendFinished.wait();
 
             await queue.delete();
-            assert(!queue.isInitialized());
-            assert.throws(() => client.queue(testQueueName));
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
         });
     });
 });
