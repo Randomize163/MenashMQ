@@ -1,10 +1,4 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
 import rabbit, { ConsumerMessage, ConsumeFunction } from '../lib/internal';
-import 'mocha';
-
-chai.use(chaiAsPromised);
 
 const testConfig = {
     rabbit: {
@@ -21,7 +15,7 @@ describe('Client tests', () => {
 
         it('should not connect twice', async () => {
             await rabbit.connect(testConfig.rabbit.uri);
-            assert.isRejected(rabbit.connect(testConfig.rabbit.uri));
+            await expect(rabbit.connect(testConfig.rabbit.uri)).rejects.toThrow();
             await rabbit.close();
         });
     });
@@ -32,8 +26,8 @@ describe('Client tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 rabbit.reportError('channel', new Error('Test simulated error'));
-                await assert.isFulfilled(rabbit.waitForInitialize());
-                assert(rabbit.isReady);
+                await expect(rabbit.waitForInitialize()).resolves.toBeUndefined();
+                expect(rabbit.isReady).toBeTruthy();
             }
 
             await rabbit.close();
@@ -60,8 +54,8 @@ describe('Client tests', () => {
 
             for (let i = 0; i < 5; i++) {
                 rabbit.reportError('channel', new Error('Test simulated error'));
-                await assert.isFulfilled(rabbit.waitForInitialize());
-                assert(rabbit.isReady);
+                await expect(rabbit.waitForInitialize()).resolves.toBeUndefined();
+                expect(rabbit.isReady).toBeTruthy();
             }
 
             await rabbit.close();
@@ -69,7 +63,7 @@ describe('Client tests', () => {
 
         it('should not connect twice', async () => {
             await rabbit.connect(testConfig.rabbit.uri);
-            assert.isRejected(rabbit.connect(testConfig.rabbit.uri));
+            await expect(rabbit.connect(testConfig.rabbit.uri)).rejects.toThrow();
             await rabbit.close();
         });
     });
@@ -93,9 +87,9 @@ describe('Client tests', () => {
                 ],
             });
 
-            assert.isObject(rabbit.queue('q1'));
-            assert.isObject(rabbit.queue('q2'));
-            assert.isObject(rabbit.exchange('ex1'));
+            expect(rabbit.queue('q1')).toBeDefined();
+            expect(rabbit.queue('q2')).toBeDefined();
+            expect(rabbit.exchange('ex1')).toBeDefined();
         });
 
         const consume: ConsumeFunction = (_msg: ConsumerMessage) => {};
@@ -129,7 +123,7 @@ describe('Client tests', () => {
                 ],
             });
 
-            assert.isRejected(promise);
+            await expect(promise).rejects.toThrow();
         });
     });
 
@@ -149,7 +143,7 @@ describe('Client tests', () => {
 
         it('should fail to declare queue', async () => {
             // @ts-ignore: error TS2554: Expected 1-2 arguments, but got 0.
-            await assert.isRejected(rabbit.declareQueue());
+            await expect(rabbit.declareQueue()).rejects.toThrow();
         });
     });
 
@@ -169,12 +163,12 @@ describe('Client tests', () => {
 
         it('should fail to declare exchange without a name', async () => {
             // @ts-ignore: error TS2554: Expected 2-3 arguments, but got 0.
-            await assert.isRejected(rabbit.declareExchange());
+            await expect(rabbit.declareExchange()).rejects.toThrow();
         });
 
         it('should fail to declare exchange without a type', async () => {
             // @ts-ignore: error TS2554: Expected 2-3 arguments, but got 0.
-            await assert.isRejected(rabbit.declareExchange('testExchange'));
+            await expect(rabbit.declareExchange('testExchange')).rejects.toThrow();
         });
     });
 
@@ -204,11 +198,11 @@ describe('Client tests', () => {
         });
 
         it('should failed to send', async () => {
-            assert.isRejected(rabbit.send('q0', 'Test message'));
-            assert.isRejected(rabbit.send('ex0', 'Test message'));
-            assert.isRejected(rabbit.send('q1', 'Test message', {}, '123'));
-            await rabbit.send('q2', 'Test message');
-            await rabbit.send('ex1', 'Test message');
+            await expect(rabbit.send('q0', 'Test message')).rejects.toThrow();
+            await expect(rabbit.send('ex0', 'Test message')).rejects.toThrow();
+            await expect(rabbit.send('q1', 'Test message', {}, '123')).rejects.toThrow();
+            await expect(rabbit.send('q2', 'Test message')).resolves.toBeUndefined();
+            await expect(rabbit.send('ex1', 'Test message')).resolves.toBeUndefined();
         });
     });
 
@@ -222,29 +216,29 @@ describe('Client tests', () => {
         });
 
         it('should return a queue by name', async () => {
-            assert.throws(() => rabbit.queue('test1'));
+            expect(() => rabbit.queue('test1')).toThrow();
 
             await rabbit.declareQueue('test1');
-            assert.equal(rabbit.queue('test1').name, 'test1');
+            expect(rabbit.queue('test1').name).toEqual('test1');
 
             await rabbit.declareQueue('test2');
-            assert.equal(rabbit.queue('test2').name, 'test2');
+            expect(rabbit.queue('test2').name).toEqual('test2');
 
             await rabbit.queue('test1').delete();
             await rabbit.queue('test2').delete();
 
-            assert.throws(() => rabbit.queue('test1'));
-            assert.throws(() => rabbit.queue('test2'));
+            expect(() => rabbit.queue('test1')).toThrow();
+            expect(() => rabbit.queue('test2')).toThrow();
         });
 
         it('should throw an error if queue was not declared or was deleted', async () => {
-            assert.throws(() => rabbit.queue('some-not-declared-queue-name'));
+            expect(() => rabbit.queue('some-not-declared-queue-name')).toThrow();
 
             await rabbit.declareQueue('test1');
-            assert.equal(rabbit.queue('test1').name, 'test1');
+            expect(rabbit.queue('test1').name).toEqual('test1');
 
             await rabbit.queue('test1').delete();
-            assert.throws(() => rabbit.queue('test1'));
+            expect(() => rabbit.queue('test1')).toThrow();
         });
     });
 
@@ -258,29 +252,29 @@ describe('Client tests', () => {
         });
 
         it('should return an exchange by name', async () => {
-            assert.throws(() => rabbit.exchange('test1'));
+            expect(() => rabbit.exchange('test1')).toThrow();
 
             await rabbit.declareExchange('test1', 'fanout');
-            assert.equal(rabbit.exchange('test1').name, 'test1');
+            expect(rabbit.exchange('test1').name).toEqual('test1');
 
             await rabbit.declareExchange('test2', 'direct');
-            assert.equal(rabbit.exchange('test2').name, 'test2');
+            expect(rabbit.exchange('test2').name).toEqual('test2');
 
             await rabbit.exchange('test1').delete();
             await rabbit.exchange('test2').delete();
 
-            assert.throws(() => rabbit.exchange('test1'));
-            assert.throws(() => rabbit.exchange('test2'));
+            expect(() => rabbit.exchange('test1')).toThrow();
+            expect(() => rabbit.exchange('test2')).toThrow();
         });
 
         it('should throw an error if exchange was not declared or was deleted', async () => {
-            assert.throws(() => rabbit.exchange('some-not-declared-queue-name'));
+            expect(() => rabbit.exchange('some-not-declared-queue-name')).toThrow();
 
             await rabbit.declareExchange('test1', 'fanout');
-            assert.equal(rabbit.exchange('test1').name, 'test1');
+            expect(rabbit.exchange('test1').name).toEqual('test1');
 
             await rabbit.exchange('test1').delete();
-            assert.throws(() => rabbit.exchange('test1'));
+            expect(() => rabbit.exchange('test1')).toThrow();
         });
     });
 });

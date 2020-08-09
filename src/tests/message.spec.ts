@@ -1,10 +1,4 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
-import 'mocha';
 import { Message } from '../lib/internal';
-
-chai.use(chaiAsPromised);
 
 const contentObject = {
     first: 'value',
@@ -26,21 +20,21 @@ describe('Message tests', () => {
         it('should setContent as Object', () => {
             const message = new Message(contentObject);
 
-            assert.deepEqual(message.getContent(), contentObject);
+            expect(message.getContent()).toEqual(contentObject);
         });
 
         it('should setContent as String', () => {
             const message = new Message(contentString);
 
-            assert.equal(message.getContent(), contentString);
+            expect(message.getContent()).toEqual(contentString);
         });
 
         it('should setContent as Buffer', () => {
             const buffer = Buffer.from(contentString);
             const message = new Message(buffer);
 
-            assert.equal(message.getRawContent(), buffer);
-            assert.equal(message.getContent(), contentString);
+            expect(message.getRawContent()).toEqual(buffer);
+            expect(message.getContent()).toEqual(contentString);
         });
     });
 });

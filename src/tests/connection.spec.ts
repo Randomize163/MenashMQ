@@ -1,10 +1,4 @@
-import * as chaiAsPromised from 'chai-as-promised';
-import * as chai from 'chai';
-import { assert } from 'chai';
-import 'mocha';
 import { Connection } from '../lib/internal';
-
-chai.use(chaiAsPromised);
 
 const testConfig = {
     rabbit: {
@@ -19,10 +13,10 @@ describe('Connection tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 await connection.initialize();
-                assert(connection.isConnected());
+                expect(connection.isConnected()).toBeTruthy();
 
                 await connection.close();
-                assert(!connection.isConnected());
+                expect(connection.isConnected()).toBeFalsy();
             }
         });
 
@@ -31,11 +25,11 @@ describe('Connection tests', () => {
 
             for (let i = 0; i < 50; i++) {
                 await connection.initialize();
-                assert(connection.isConnected());
+                expect(connection.isConnected()).toBeTruthy();
             }
 
             await connection.close();
-            assert(!connection.isConnected());
+            expect(connection.isConnected()).toBeFalsy();
         });
     });
 });
