@@ -45,9 +45,9 @@ export class BindingManager {
         }
 
         if (destination instanceof Queue) {
-            await source.channel!.bindQueue(destination.name, source.name, pattern, args);
+            await source.getNativeChannel().bindQueue(destination.name, source.name, pattern, args);
         } else {
-            await source.channel!.bindExchange(destination.name, source.name, pattern, args);
+            await source.getNativeChannel().bindExchange(destination.name, source.name, pattern, args);
         }
     }
 
@@ -61,9 +61,9 @@ export class BindingManager {
         }
 
         if (destination instanceof Queue) {
-            await source.channel!.unbindQueue(destination.name, source.name, pattern, args);
+            await source.getNativeChannel().unbindQueue(destination.name, source.name, pattern, args);
         } else {
-            await source.channel!.unbindExchange(destination.name, source.name, pattern, args);
+            await source.getNativeChannel().unbindExchange(destination.name, source.name, pattern, args);
         }
     }
 

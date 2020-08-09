@@ -51,7 +51,7 @@ export class ConsumerMessage extends Message {
 
         assert(this.queue.channel);
 
-        this.queue.channel.ack(this.message);
+        this.queue.getNativeChannel().ack(this.message);
 
         this.acked = true;
     }
@@ -63,7 +63,7 @@ export class ConsumerMessage extends Message {
 
         assert(this.queue.channel);
 
-        this.queue.channel.nack(this.message, allUpTo, requeue);
+        this.queue.getNativeChannel().nack(this.message, allUpTo, requeue);
 
         this.nacked = true;
     }

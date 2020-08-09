@@ -1,6 +1,7 @@
 import client, { Channel, Message, Connection, amqp, assert, ConsumerMessage, Exchange, trycatch, stringify, tryOnce } from './internal';
 
-export class Queue extends Channel {
+export class Queue {
+    channel: Channel;
     consumerOptions?: amqp.Options.Consume;
     consumerTag: string | null = null;
     consumerOnMessage: ConsumeFunction;
@@ -8,7 +9,11 @@ export class Queue extends Channel {
     queueAsserted = false;
 
     constructor(connection: Connection, public name: string, public options: QueueOptions = {}) {
-        super(connection);
+        this.channel = new Channel(connection);
+    }
+
+    public getNativeChannel() {
+        return this.channel.getNativeChannel();
     }
 
     async initialize() {
@@ -16,20 +21,20 @@ export class Queue extends Channel {
             await this.close();
         }
 
-        await super.initialize();
+        await this.channel.initialize();
 
         try {
-            await this.channel!.assertQueue(this.name, this.options);
+            await this.getNativeChannel().assertQueue(this.name, this.options);
 
             if (this.options.prefetch) {
-                await this.channel!.prefetch(this.options.prefetch);
+                await this.channel.prefetch(this.options.prefetch);
             }
 
             if (this.consumerTag) {
                 await this.activateConsumerHelper(this.consumerOnMessage, this.consumerOptions);
             }
         } catch (err) {
-            await super.close();
+            await this.channel.close();
             throw err;
         }
 
@@ -41,11 +46,11 @@ export class Queue extends Channel {
             return;
         }
 
-        await super.close();
+        await this.channel.close();
     }
 
     isInitialized() {
-        return super.isInitialized() && this.queueAsserted;
+        return this.channel.isInitialized() && this.queueAsserted;
     }
 
     async prefetch(count: number) {
@@ -55,7 +60,7 @@ export class Queue extends Channel {
             throw new Error(`Queue is not initialized`);
         }
 
-        await tryOnce(() => super.prefetch(count), 'queue');
+        await tryOnce(() => this.channel.prefetch(count), 'queue');
 
         this.options.prefetch = count;
     }
@@ -84,7 +89,7 @@ export class Queue extends Channel {
 
         assert(this.channel);
 
-        await tryOnce(() => Queue.sendHelper(this.channel!, this.name, message.getRawContent(), message.properties), 'queue');
+        await tryOnce(() => Queue.sendHelper(this.getNativeChannel(), this.name, message.getRawContent(), message.properties), 'queue');
     }
 
     private static sendHelper(channel: amqp.ConfirmChannel, queue: string, content: Buffer, properties?: QueueSendProperties) {
@@ -141,7 +146,7 @@ export class Queue extends Channel {
             }
         };
 
-        const { consumerTag } = await this.channel!.consume(this.name, consume, options);
+        const { consumerTag } = await this.getNativeChannel().consume(this.name, consume, options);
 
         this.consumerTag = consumerTag;
         this.consumerOptions = options;
@@ -155,7 +160,7 @@ export class Queue extends Channel {
             throw new Error(`Consumer was not activated for queue ${this.name}`);
         }
 
-        await this.channel!.cancel(this.consumerTag);
+        await this.getNativeChannel().cancel(this.consumerTag);
         this.consumerTag = null;
     }
 }

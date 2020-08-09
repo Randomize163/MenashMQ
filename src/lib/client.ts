@@ -305,7 +305,7 @@ export class Client extends EventEmitter {
 
         await this.bindings.unbindAllBindingsForEntity(exchange);
 
-        await exchange.channel!.deleteExchange(name, { ifUnused });
+        await exchange.getNativeChannel().deleteExchange(name, { ifUnused });
 
         await exchange.close();
 
@@ -326,7 +326,7 @@ export class Client extends EventEmitter {
 
         await this.bindings.unbindAllBindingsForEntity(queue);
 
-        await queue.channel!.deleteQueue(name, options);
+        await queue.getNativeChannel().deleteQueue(name, options);
 
         await queue.close();
 

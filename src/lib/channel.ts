@@ -33,7 +33,7 @@ export class Channel {
             return;
         }
 
-        const channel = this.channel!;
+        const channel = this.getNativeChannel();
         this.channel = null;
 
         channel.removeAllListeners('error');
@@ -56,8 +56,17 @@ export class Channel {
             return;
         }
 
-        await this.channel!.prefetch(count);
+        await this.getNativeChannel().prefetch(count);
 
         this.prefetchCount = count;
+    }
+
+    getNativeChannel() {
+        if (!this.isInitialized()) {
+            throw new Error('[BUG] Trying to get native channel, but Channel was closed or was not initialized yet');
+        }
+
+        assert(this.channel);
+        return this.channel;
     }
 }

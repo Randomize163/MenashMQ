@@ -1,10 +1,12 @@
 import client, { Channel, Message, Connection, amqp, assert, tryOnce } from './internal';
 
-export class Exchange extends Channel {
+export class Exchange {
+    channel: Channel;
+
     exchangeAsserted = false;
 
     constructor(connection: Connection, public name: string, public type: ExchangeType, public options: amqp.Options.AssertExchange = {}) {
-        super(connection);
+        this.channel = new Channel(connection);
     }
 
     async initialize() {
@@ -12,12 +14,12 @@ export class Exchange extends Channel {
             await this.close();
         }
 
-        await super.initialize();
+        await this.channel.initialize();
 
         try {
-            await this.channel!.assertExchange(this.name, this.type, this.options);
+            await this.getNativeChannel().assertExchange(this.name, this.type, this.options);
         } catch (err) {
-            await super.close();
+            await this.channel.close();
             return;
         }
 
@@ -32,15 +34,19 @@ export class Exchange extends Channel {
         }
 
         // eslint-disable-next-line no-console
-        await super.close().catch((err) => console.error(`Channel.close() for ${this.name} failed with error:`, err));
+        await this.channel.close().catch((err) => console.error(`Channel.close() for ${this.name} failed with error:`, err));
 
         this.exchangeAsserted = false;
 
         assert(!this.isInitialized());
     }
 
+    getNativeChannel() {
+        return this.channel.getNativeChannel();
+    }
+
     isInitialized() {
-        return super.isInitialized() && this.exchangeAsserted;
+        return this.channel.isInitialized() && this.exchangeAsserted;
     }
 
     async send(content: Buffer | String | Object, routingKey: string = '', properties: ExchangeSendProperties = {}) {
@@ -50,7 +56,10 @@ export class Exchange extends Channel {
 
         const message = new Message(content, properties);
 
-        await tryOnce(() => Exchange.publishHelper(this.channel!, this.name, routingKey, message.getRawContent(), message.properties), 'exchange');
+        await tryOnce(
+            () => Exchange.publishHelper(this.getNativeChannel(), this.name, routingKey, message.getRawContent(), message.properties),
+            'exchange',
+        );
     }
 
     private static publishHelper(

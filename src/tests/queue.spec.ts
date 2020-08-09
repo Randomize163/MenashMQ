@@ -49,6 +49,14 @@ describe('Queue tests', () => {
             await queue.close();
             expect(queue.isInitialized()).toBeFalsy();
         });
+
+        it('should fail to initialize with wrong configuration() ', async () => {
+            const queue = new Queue(connection, 'testQ', { durable: false, autoDelete: true, prefetch: -1 });
+            await expect(queue.initialize()).rejects.toThrowError();
+
+            expect(queue.isInitialized()).toBeFalsy();
+            await queue.close();
+        });
     });
 
     describe('Declare queue tests', () => {
