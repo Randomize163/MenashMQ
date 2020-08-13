@@ -1,7 +1,7 @@
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 
-export * from '../lib';
+export * from './sync';
 
 export const promisePipe = promisify(pipeline);
 
@@ -17,28 +17,30 @@ export const trycatch = async (func: Function, ...args: any[]) => {
     return ret;
 };
 
-const addErrorReplacerToReplacer = (replacer: ((key: any, value?: any) => any) | null) => (_key: any, value: any) => {
+type ReplacerFunction = (key: any, value: any) => any;
+
+const addErrorReplacerToReplacer = (replacer?: ReplacerFunction) => (key: any, value: any) => {
     if (value instanceof Error) {
         const error = {};
 
         const allowedErrorProperties = ['message', 'stack'];
 
         Object.getOwnPropertyNames(value)
-            .filter((key) => allowedErrorProperties.includes(key))
-            .forEach((key) => {
-                error[key] = value[key];
+            .filter((objectKey) => allowedErrorProperties.includes(objectKey))
+            .forEach((objectKey) => {
+                error[objectKey] = value[objectKey];
             });
 
         return error;
     }
 
     if (replacer) {
-        return replacer(value);
+        return replacer(key, value);
     }
 
     return value;
 };
 
-export const stringify = (object: any, space = 2, replacer = null) => {
+export const stringify = (object: any, space = 2, replacer?: ReplacerFunction) => {
     return JSON.stringify(object, addErrorReplacerToReplacer(replacer), space);
 };
