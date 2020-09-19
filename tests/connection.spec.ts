@@ -1,4 +1,4 @@
-import { Connection } from '../lib/internal';
+import { Connection } from '../src/lib/internal';
 
 const testConfig = {
     rabbit: {
@@ -18,6 +18,8 @@ describe('Connection tests', () => {
                 await connection.close();
                 expect(connection.isConnected()).toBeFalsy();
             }
+
+            await connection.close();
         });
 
         it('should initialize connection', async () => {

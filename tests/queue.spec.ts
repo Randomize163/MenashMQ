@@ -1,5 +1,5 @@
-import client, { Queue, Connection, ConsumerMessage } from '../lib/internal';
-import { Event } from '../utils/sync';
+import client, { Queue, Connection, ConsumerMessage } from '../src/lib/internal';
+import { Event } from '../src/utils/sync';
 
 const testConfig = {
     rabbit: {
@@ -124,10 +124,19 @@ describe('Queue tests', () => {
                 expect(() => client.queue(testQueueName)).toThrow();
             }
         });
+
+        it('should throw if prefetch() is called on uninitialized queue', async () => {
+            expect(client.connection).toBeDefined();
+
+            const queue = new Queue(client.connection!, 'prefetchTest');
+            await expect(queue.prefetch(5)).rejects.toThrowError(`Queue is not initialized`);
+        });
     });
 
     describe('Send queue tests', () => {
         it('should send to queue', async () => {
+            jest.setTimeout(10000);
+
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
             expect(client.queue(testQueueName)).toBe(queue);
@@ -150,7 +159,7 @@ describe('Queue tests', () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
 
-            await queue.activateConsumer((_message) => {}, { noAck: true });
+            await queue.activateConsumer(() => {}, { noAck: true });
 
             await queue.delete();
             expect(queue.isInitialized()).toBeFalsy();
@@ -161,12 +170,34 @@ describe('Queue tests', () => {
             const testQueueName = 'testQ';
             const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
 
-            await queue.activateConsumer((_message) => {}, { noAck: true });
+            await queue.activateConsumer(() => {}, { noAck: true });
             await queue.stopConsumer();
 
             await queue.delete();
             expect(queue.isInitialized()).toBeFalsy();
             expect(() => client.queue(testQueueName)).toThrow();
+        });
+
+        it('should have only one consumer', async () => {
+            const testQueueName = 'testQ';
+            const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
+
+            await queue.activateConsumer(() => {}, { noAck: true });
+
+            await expect(queue.activateConsumer(() => {}, { noAck: true })).rejects.toThrowError(
+                `Only one consumer could be activated for queue ${testQueueName}`,
+            );
+
+            await queue.delete();
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
+        });
+
+        it('should throw when trying to stop consumer that was not activated', async () => {
+            const testQueueName = 'stopConsumerThrow';
+            const queue = await client.declareQueue(testQueueName);
+
+            await expect(queue.stopConsumer()).rejects.toThrowError(`Consumer was not activated for queue ${testQueueName}`);
         });
 
         it('should consume message', async () => {
@@ -192,6 +223,24 @@ describe('Queue tests', () => {
             await queue.delete();
             expect(queue.isInitialized()).toBeFalsy();
             expect(() => client.queue(testQueueName)).toThrow();
+        });
+
+        it('should handle send failure', async () => {
+            const queue = await client.declareQueue('handleSendFailure', { durable: false });
+
+            const mock = jest.spyOn(queue.channel, 'sendToQueue');
+            mock.mockRejectedValue(new Error('Mock rejects channel.sendToQueue()'));
+
+            await expect(queue.send('this message will fail')).rejects.toThrow();
+        });
+
+        it('should handle retry send once', async () => {
+            const queue = await client.declareQueue('handleSendFailure2', { durable: false });
+
+            const mock = jest.spyOn(queue.channel, 'sendToQueue');
+            mock.mockRejectedValueOnce(new Error('Mock rejects channel.sendToQueue()'));
+
+            await expect(queue.send('this message will success after one retry')).resolves.toBeUndefined();
         });
     });
 });

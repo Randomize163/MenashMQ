@@ -1,4 +1,4 @@
-import rabbit, { ConsumerMessage, ConsumeFunction } from '../lib/internal';
+import rabbit, { ConsumerMessage, ConsumeFunction } from '../src/lib/internal';
 
 const testConfig = {
     rabbit: {

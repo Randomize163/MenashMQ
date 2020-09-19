@@ -1,4 +1,4 @@
-import { trycatch, stringify } from '../../utils';
+import { trycatch, stringify } from '../../src/utils';
 
 describe('trycatch tests', () => {
     const mockFn = jest.fn();

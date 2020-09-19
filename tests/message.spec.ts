@@ -1,4 +1,4 @@
-import { Message } from '../lib/internal';
+import { Message } from '../src/lib/internal';
 
 const contentObject = {
     first: 'value',

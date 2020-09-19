@@ -56,9 +56,7 @@ export class Queue {
     async prefetch(count: number) {
         await client.waitForInitialize();
 
-        if (!this.isInitialized()) {
-            throw new Error(`Queue is not initialized`);
-        }
+        assert(this.isInitialized(), `Queue is not initialized`);
 
         await tryOnce(() => this.channel.prefetch(count), 'queue');
 
@@ -72,9 +70,7 @@ export class Queue {
     async bind(source: Exchange | string, pattern: string = '', args?: any) {
         await client.waitForInitialize();
 
-        if (!this.isInitialized()) {
-            throw new Error('Queue is not initialized');
-        }
+        assert(this.isInitialized(), `Queue is not initialized`);
 
         await client.bind(source, this, pattern, args);
     }
@@ -89,27 +85,13 @@ export class Queue {
 
         assert(this.channel);
 
-        await tryOnce(() => Queue.sendHelper(this.getNativeChannel(), this.name, message.getRawContent(), message.properties), 'queue');
-    }
-
-    private static sendHelper(channel: amqp.ConfirmChannel, queue: string, content: Buffer, properties?: QueueSendProperties) {
-        return new Promise((resolve, reject) => {
-            channel.sendToQueue(queue, content, properties, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        await tryOnce(() => this.channel.sendToQueue(this.name, message.getRawContent(), message.properties), 'queue');
     }
 
     async activateConsumer(onMessage: ConsumeFunction, options?: amqp.Options.Consume) {
         await client.waitForInitialize();
 
-        if (!this.isInitialized()) {
-            throw new Error(`Queue is not initialized`);
-        }
+        assert(this.isInitialized(), `Queue is not initialized`);
 
         if (this.consumerTag !== null) {
             throw new Error(`Only one consumer could be activated for queue ${this.name}`);

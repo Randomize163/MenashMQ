@@ -1,4 +1,4 @@
-import { Connection, Channel } from '../lib/internal';
+import { Connection, Channel } from '../src/lib/internal';
 
 const testConfig = {
     rabbit: {
@@ -45,6 +45,20 @@ describe('Channel tests', () => {
         });
     });
 
+    describe('Close tests', () => {
+        it('should ignore multiple close channel', async () => {
+            const channel = new Channel(connection);
+
+            await channel.initialize();
+            expect(channel.isInitialized()).toBeTruthy();
+
+            for (let i = 0; i < 50; i++) {
+                await channel.close();
+                expect(channel.isInitialized()).toBeFalsy();
+            }
+        });
+    });
+
     describe('Prefetch tests', () => {
         it('should configure prefetch', async () => {
             const channel = new Channel(connection);
@@ -58,6 +72,38 @@ describe('Channel tests', () => {
 
             await channel.close();
             expect(channel.isInitialized()).toBeFalsy();
+        });
+    });
+
+    describe('getNativeChannel() tests', () => {
+        it('should return native channel', async () => {
+            const channel = new Channel(connection);
+
+            await channel.initialize();
+            expect(channel.isInitialized()).toBeTruthy();
+
+            expect(channel.getNativeChannel()).toBe(channel.channel);
+
+            await channel.close();
+            expect(channel.isInitialized()).toBeFalsy();
+        });
+
+        it('should throw if channel is not initialized', async () => {
+            const channel = new Channel(connection);
+
+            expect(channel.isInitialized()).toBeFalsy();
+
+            expect(() => channel.getNativeChannel()).toThrowError(
+                '[BUG] Trying to get native channel, but Channel was closed or was not initialized yet',
+            );
+
+            await channel.initialize();
+            await channel.close();
+
+            expect(channel.isInitialized()).toBeFalsy();
+            expect(() => channel.getNativeChannel()).toThrowError(
+                '[BUG] Trying to get native channel, but Channel was closed or was not initialized yet',
+            );
         });
     });
 });

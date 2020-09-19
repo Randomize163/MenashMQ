@@ -1,4 +1,4 @@
-import client, { Connection, amqp, assert } from './internal';
+import client, { Connection, amqp, assert, QueueSendProperties } from './internal';
 
 export class Channel {
     channel: amqp.ConfirmChannel | null = null;
@@ -48,9 +48,7 @@ export class Channel {
     }
 
     async prefetch(count: number) {
-        if (!this.isInitialized()) {
-            throw new Error(`Channel is not initialized`);
-        }
+        assert(this.isInitialized(), `Channel is not initialized`);
 
         if (this.prefetchCount === count) {
             return;
@@ -59,6 +57,20 @@ export class Channel {
         await this.getNativeChannel().prefetch(count);
 
         this.prefetchCount = count;
+    }
+
+    sendToQueue(queue: string, content: Buffer, options?: QueueSendProperties) {
+        assert(this.isInitialized(), `Channel is not initialized`);
+
+        return new Promise((resolve, reject) => {
+            this.getNativeChannel().sendToQueue(queue, content, options, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 
     getNativeChannel() {

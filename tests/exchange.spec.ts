@@ -1,4 +1,4 @@
-import client, { Connection, Exchange, ExchangeType } from '../lib/internal';
+import client, { Connection, Exchange, ExchangeType } from '../src/lib/internal';
 
 const testConfig = {
     rabbit: {

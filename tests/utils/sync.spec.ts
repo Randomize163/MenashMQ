@@ -1,4 +1,4 @@
-import { Event } from '../../utils/sync';
+import { Event } from '../../src/utils/sync';
 
 describe('Event tests', () => {
     it('should wait for event once', async () => {
