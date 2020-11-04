@@ -193,5 +193,34 @@ describe('Queue tests', () => {
             expect(queue.isInitialized()).toBeFalsy();
             expect(() => client.queue(testQueueName)).toThrow();
         });
+
+        it.each([undefined, { noAck: false }, { noAck: true }])('should handle throwing consumers', async (consumeOptions: any) => {
+            const testQueueName = 'testQ';
+            const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
+
+            const content = 'Test message';
+
+            const sendFinished = new Event();
+
+            let wasCalled = false;
+
+            await queue.activateConsumer((message: ConsumerMessage) => {
+                expect(message.getContent()).toBe(content);
+
+                expect(wasCalled).toBeFalsy();
+                wasCalled = true;
+
+                sendFinished.signal();
+                throw new Error('Some user error');
+            }, consumeOptions);
+
+            await queue.send(content);
+
+            await sendFinished.wait();
+
+            await queue.delete();
+            expect(queue.isInitialized()).toBeFalsy();
+            expect(() => client.queue(testQueueName)).toThrow();
+        });
     });
 });

@@ -118,13 +118,15 @@ export class Queue {
         await this.activateConsumerHelper(onMessage, options);
     }
 
-    private async activateConsumerHelper(onMessage: ConsumeFunction, options?: amqp.Options.Consume) {
+    private async activateConsumerHelper(onMessage: ConsumeFunction, options: amqp.Options.Consume = { noAck: false }) {
         const consume = async (msg: amqp.Message | null) => {
             if (!msg) {
                 return;
             }
 
             await client.waitForInitialize();
+
+            assert(this.consumerOptions, '[BUG] Consumer options were not defined');
 
             const message = ConsumerMessage.from(msg, this);
 
@@ -134,13 +136,13 @@ export class Queue {
                     'consumer',
                     new Error(`[BUG] Consumer function of queue ${this.name} throws exception. Message will be rejected. Error: ${stringify(err)}`),
                 );
-                if (this.consumerOptions?.noAck === false) {
+                if (this.consumerOptions.noAck === false) {
                     message.nack(false);
                 }
                 return;
             }
 
-            if (this.consumerOptions?.noAck === false && !message.isProcessed()) {
+            if (this.consumerOptions.noAck === false && !message.isProcessed()) {
                 client.reportError('consumer', new Error(`[BUG] Consumer function of queue ${this.name} should ack, nack or reject message.`));
                 message.nack(false);
             }
