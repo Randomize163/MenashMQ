@@ -194,33 +194,49 @@ describe('Queue tests', () => {
             expect(() => client.queue(testQueueName)).toThrow();
         });
 
-        it.each([undefined, { noAck: false }, { noAck: true }])('should handle throwing consumers', async (consumeOptions: any) => {
-            const testQueueName = 'testQ';
-            const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
+        it.each([
+            [undefined, false, false],
+            [undefined, false, true],
+            [undefined, true, false],
+            [{ noAck: false }, false, false],
+            [{ noAck: false }, false, true],
+            [{ noAck: false }, true, false],
+            [{ noAck: true }, false, false], // client shouldnt ack if noAck=true
+        ])(
+            'should handle throwing consumers with consumeOptions %p, and consumer acked %p nacked %p',
+            async (consumeOptions: any, didConsumerAcked: boolean, didConsumerNacked: boolean) => {
+                const testQueueName = 'testQ';
+                const queue = await client.declareQueue(testQueueName, { durable: false, autoDelete: true });
 
-            const content = 'Test message';
+                const content = 'Test message';
 
-            const sendFinished = new Event();
+                const sendFinished = new Event();
 
-            let wasCalled = false;
+                let wasCalled = false;
 
-            await queue.activateConsumer((message: ConsumerMessage) => {
-                expect(message.getContent()).toBe(content);
+                await queue.activateConsumer((message: ConsumerMessage) => {
+                    expect(message.getContent()).toBe(content);
 
-                expect(wasCalled).toBeFalsy();
-                wasCalled = true;
+                    expect(wasCalled).toBeFalsy();
+                    wasCalled = true;
 
-                sendFinished.signal();
-                throw new Error('Some user error');
-            }, consumeOptions);
+                    sendFinished.signal();
+                    if (!consumeOptions.noAck && didConsumerAcked) {
+                        message.ack();
+                    } else if (!consumeOptions.noAck && didConsumerNacked) {
+                        message.nack();
+                    }
+                    throw new Error('Some user error');
+                }, consumeOptions);
 
-            await queue.send(content);
+                await queue.send(content);
 
-            await sendFinished.wait();
+                await sendFinished.wait();
 
-            await queue.delete();
-            expect(queue.isInitialized()).toBeFalsy();
-            expect(() => client.queue(testQueueName)).toThrow();
-        });
+                await queue.delete();
+                expect(queue.isInitialized()).toBeFalsy();
+                expect(() => client.queue(testQueueName)).toThrow();
+            },
+        );
     });
 });

@@ -136,7 +136,7 @@ export class Queue {
                     'consumer',
                     new Error(`[BUG] Consumer function of queue ${this.name} throws exception. Message will be rejected. Error: ${stringify(err)}`),
                 );
-                if (this.consumerOptions.noAck === false) {
+                if (this.consumerOptions.noAck === false && !message.isProcessed()) {
                     message.nack(false);
                 }
                 return;
