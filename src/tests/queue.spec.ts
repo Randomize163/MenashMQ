@@ -135,7 +135,7 @@ describe('Queue tests', () => {
 
             const message = 'Test send queue';
 
-            for (let i = 0; i < 5000; i++) {
+            for (let i = 0; i < 500; i++) {
                 await queue.send(message);
             }
 
