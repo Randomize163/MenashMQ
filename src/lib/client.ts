@@ -180,7 +180,7 @@ export class Client extends EventEmitter {
 
     async declareQueue(name: string, options: amqp.Options.AssertQueue = {}) {
         if (!name) {
-            throw new Error('Exchange name is a required parameter');
+            throw new Error('Queue name is a required parameter');
         }
 
         await this.waitForInitialize();
