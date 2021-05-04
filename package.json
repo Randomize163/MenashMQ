@@ -30,7 +30,7 @@
     "src/**/*"
   ],
   "scripts": {
-    "start": "node --async-stack-traces ./dist/index.js",
+    "start": "node --async-stack-traces ./dist/examples/index.js",
     "dev": "npm run build && npm start",
     "build": "tsc",
     "build:watch": "tsc --watch",
