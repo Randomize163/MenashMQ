@@ -152,7 +152,8 @@ export class Client extends EventEmitter {
         console.log(`[RabbitMQ Client] Starting reinitialize...`);
 
         this.isReady = false;
-        this.initialize();
+
+        setImmediate(() => this.initialize());
     }
 
     async declareExchange(name: string, type: ExchangeType, options: amqp.Options.AssertExchange = {}) {
