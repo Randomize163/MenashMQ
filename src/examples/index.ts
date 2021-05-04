@@ -50,6 +50,6 @@ const main = async () => {
 };
 
 main().catch((err) => {
-    console.error(`Mail failed with error: `, err);
+    console.error(`Main failed with error: `, err);
     process.exit(1);
 });
