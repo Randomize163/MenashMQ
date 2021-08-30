@@ -161,8 +161,8 @@ export class Client extends EventEmitter {
             throw new Error('Exchange name is a required parameter');
         }
 
-        if (!type || !Exchange.getTypes().includes(type)) {
-            throw new Error(`Exchange type is a required parameter and should be one of the following options: ${Exchange.getTypes().toString()}`);
+        if (!type) {
+            throw new Error(`Exchange type is a required parameter`);
         }
 
         await this.waitForInitialize();

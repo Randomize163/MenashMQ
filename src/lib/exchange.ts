@@ -100,14 +100,10 @@ export class Exchange {
         await client.bind(source, this, pattern, args);
     }
 
-    static getTypes(): ExchangeType[] {
-        return ['fanout', 'topic', 'direct', 'headers'];
-    }
-
     // addConsumer() {}
     // removeConsumer() {}
 }
 
 export interface ExchangeSendProperties extends amqp.Options.Publish {}
 
-export type ExchangeType = 'fanout' | 'topic' | 'direct' | 'headers';
+export type ExchangeType = 'fanout' | 'topic' | 'direct' | 'headers' | string;
