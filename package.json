@@ -1,6 +1,6 @@
 {
   "name": "menashmq",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Easy to use RabbitMQ abstraction with auto-reconnect for JavaScript and TypeScript",
   "keywords": [
     "rabbitmq",
